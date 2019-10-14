@@ -4,7 +4,8 @@
   "description": "Some helpers for await/async",
   "main": "lib/xaa.js",
   "scripts": {
-    "test": "clap check"
+    "test": "clap check",
+    "coverage": "clap check"
   },
   "repository": {
     "type": "git",
