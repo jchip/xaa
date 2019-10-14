@@ -111,5 +111,117 @@ describe("xaa", function() {
       expect(x).to.deep.equal([3, 6, 9, 12, 15]);
       expect(Date.now() - a).to.be.below(200);
     });
+
+    it("should continue with free concurrency slots even if one is stuck", async () => {
+      const a = Date.now();
+      const doneOrder = [];
+      const x = await xaa.map(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        async v => {
+          if (v === 2) {
+            await xaa.delay(120);
+          } else if (v === 7) {
+            await xaa.delay(75);
+          }
+          await xaa.delay(50);
+          doneOrder.push(v);
+          return v * 3;
+        },
+        { concurrency: 3 }
+      );
+      expect(x).to.deep.equal([3, 6, 9, 12, 15, 18, 21, 24, 27]);
+      expect(Date.now() - a).to.be.below(250);
+      expect(doneOrder).to.deep.equal([1, 3, 4, 5, 6, 2, 8, 9, 7]);
+    });
+
+    it("should handle mix result for concurrency", async () => {
+      const a = Date.now();
+      const doneOrder = [];
+      const x = await xaa.map(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        v => {
+          if (v === 2 || v === 7) {
+            doneOrder.push(v);
+            return v * 3;
+          }
+          return xaa.delay(50).then(() => {
+            doneOrder.push(v);
+            return v * 3;
+          });
+        },
+        { concurrency: 3 }
+      );
+      expect(x).to.deep.equal([3, 6, 9, 12, 15, 18, 21, 24, 27]);
+      expect(Date.now() - a).to.be.below(250);
+      expect(doneOrder).to.deep.equal([2, 1, 3, 4, 7, 5, 6, 8, 9]);
+    });
+
+    it("should handle error from an item", async () => {
+      const a = Date.now();
+      const doneOrder = [];
+      let expectedError;
+      let res;
+      try {
+        res = await xaa.map(
+          [1, 2, 3, 4, 5, 6, 7, 8, 9],
+          async v => {
+            if (v === 2) {
+              await xaa.delay(120);
+            } else if (v === 7) {
+              await xaa.delay(75);
+            }
+            await xaa.delay(50);
+            if (v === 5) {
+              throw new Error("Test error");
+            }
+            doneOrder.push(v);
+            return v * 3;
+          },
+          { concurrency: 3 }
+        );
+      } catch (err) {
+        expectedError = err;
+      }
+      expect(expectedError).to.be.ok;
+      expect(expectedError.message).to.equal("Test error");
+      expect(res).to.equal(undefined);
+      expect(Date.now() - a).to.be.below(150);
+      expect(doneOrder).to.deep.equal([1, 3, 4]);
+    });
+
+    it("should handle immediate error from an item for concurrency", async () => {
+      const a = Date.now();
+      const doneOrder = [];
+      let expectedError;
+      let res;
+
+      try {
+        res = await xaa.map(
+          [1, 2, 3, 4, 5, 6, 7, 8, 9],
+          v => {
+            if (v === 2 || v === 7) {
+              doneOrder.push(v);
+              return v * 3;
+            }
+            if (v === 5) {
+              throw new Error("Test error");
+            }
+            return xaa.delay(50).then(() => {
+              doneOrder.push(v);
+              return v * 3;
+            });
+          },
+          { concurrency: 3 }
+        );
+      } catch (err) {
+        expectedError = err;
+      }
+
+      expect(expectedError).to.be.ok;
+      expect(expectedError.message).to.equal("Test error");
+      expect(res).to.equal(undefined);
+      expect(Date.now() - a).to.be.below(100);
+      expect(doneOrder).to.deep.equal([2, 1, 3, 4, 7]);
+    });
   });
 });
