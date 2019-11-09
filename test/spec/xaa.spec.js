@@ -3,46 +3,6 @@
 const xaa = require("../..");
 
 describe("xaa", function() {
-  describe("try", function() {
-    it("should return if there's no error", async () => {
-      const x = await xaa.try(() => Promise.resolve("hello"));
-      expect(x).to.equal("hello");
-      const x2 = await xaa.try(() => "hello");
-      expect(x2).to.equal("hello");
-    });
-
-    it("should catch error", async () => {
-      const x = await xaa.try(() => {
-        throw new Error("test");
-      });
-      expect(x).to.equal(undefined);
-      const x2 = await xaa.try(() => {
-        throw new Error("test");
-      }, "oops");
-      expect(x2).to.equal("oops");
-    });
-
-    it("should catch error and call sync handler", async () => {
-      const x = await xaa.try(
-        () => {
-          throw new Error("blah");
-        },
-        () => "oops"
-      );
-      expect(x).to.equal("oops");
-    });
-
-    it("should catch error and call async handler", async () => {
-      const x = await xaa.try(
-        () => {
-          throw new Error("blah");
-        },
-        () => Promise.resolve("oops")
-      );
-      expect(x).to.equal("oops");
-    });
-  });
-
   describe("delay", function() {
     it("should wait ms", async () => {
       const a = Date.now();
@@ -63,18 +23,6 @@ describe("xaa", function() {
       const x = await xaa.delay(20, () => "hello");
       expect(x).to.equal("hello");
       expect(Date.now() - a).to.be.above(19);
-    });
-  });
-
-  describe("filter", function() {
-    it("should filter sync", async () => {
-      const x = await xaa.filter([1, 2, 3, 4, 5, 6], v => v % 2 === 0);
-      expect(x).to.deep.equal([2, 4, 6]);
-    });
-
-    it("should filter async", async () => {
-      const x = await xaa.filter([1, 2, 3, 4, 5, 6], v => Promise.resolve(v % 2 === 0));
-      expect(x).to.deep.equal([2, 4, 6]);
     });
   });
 
@@ -222,6 +170,96 @@ describe("xaa", function() {
       expect(res).to.equal(undefined);
       expect(Date.now() - a).to.be.below(100);
       expect(doneOrder).to.deep.equal([2, 1, 3, 4, 7]);
+    });
+  });
+
+  describe("filter", function() {
+    it("should filter sync", async () => {
+      const x = await xaa.filter([1, 2, 3, 4, 5, 6], v => v % 2 === 0);
+      expect(x).to.deep.equal([2, 4, 6]);
+    });
+
+    it("should filter async", async () => {
+      const x = await xaa.filter([1, 2, 3, 4, 5, 6], v => Promise.resolve(v % 2 === 0));
+      expect(x).to.deep.equal([2, 4, 6]);
+    });
+  });
+
+  describe("try", function() {
+    it("should return if there's no error", async () => {
+      const x = await xaa.try(() => Promise.resolve("hello"));
+      expect(x).to.equal("hello");
+      const x2 = await xaa.try(() => "hello");
+      expect(x2).to.equal("hello");
+    });
+
+    it("should catch error", async () => {
+      const x = await xaa.try(() => {
+        throw new Error("test");
+      });
+      expect(x).to.equal(undefined);
+      const x2 = await xaa.try(() => {
+        throw new Error("test");
+      }, "oops");
+      expect(x2).to.equal("oops");
+    });
+
+    it("should catch error and call sync handler", async () => {
+      const x = await xaa.try(
+        () => {
+          throw new Error("blah");
+        },
+        () => "oops"
+      );
+      expect(x).to.equal("oops");
+    });
+
+    it("should catch error and call async handler", async () => {
+      const x = await xaa.try(
+        () => {
+          throw new Error("blah");
+        },
+        () => Promise.resolve("oops")
+      );
+      expect(x).to.equal("oops");
+    });
+  });
+
+  describe("wrap", function() {
+    it("should wrap direct throws into async", () => {
+      let error;
+      return xaa
+        .wrap(() => {
+          throw new Error("blah");
+        })
+        .then(() => {
+          throw new Error("expecting error");
+        })
+        .catch(err => {
+          error = err;
+        })
+        .then(() => {
+          expect(error).to.be.an("Error");
+          expect(error.message).equal("blah");
+        });
+    });
+
+    it("should wrap async error", () => {
+      let error;
+      return xaa
+        .wrap(() => {
+          return Promise.reject(new Error("blah"));
+        })
+        .then(() => {
+          throw new Error("expecting error");
+        })
+        .catch(err => {
+          error = err;
+        })
+        .then(() => {
+          expect(error).to.be.an("Error");
+          expect(error.message).equal("blah");
+        });
     });
   });
 });
