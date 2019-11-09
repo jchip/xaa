@@ -261,5 +261,37 @@ describe("xaa", function() {
           expect(error.message).equal("blah");
         });
     });
+
+    it("should call with args", () => {
+      return xaa
+        .wrap(
+          (...numbers) => {
+            return numbers.reduce((s, x) => s + x, 0);
+          },
+          1,
+          2,
+          3,
+          4
+        )
+        .then(a => {
+          expect(a).equal(10);
+        });
+    });
+
+    it("should call with no args", () => {
+      return xaa.wrap((...args) => {
+        expect(args.length).equal(0);
+      });
+    });
+
+    it("should call with args that are undefined", () => {
+      return xaa.wrap(
+        (...args) => {
+          expect(args.length).equal(2);
+        },
+        undefined,
+        undefined
+      );
+    });
   });
 });
