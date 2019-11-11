@@ -23,7 +23,7 @@ describe("xaa", function() {
       const a = Date.now();
       const x = await xaa.delay(20, () => "hello");
       expect(x).to.equal("hello");
-      expect(Date.now() - a).to.be.above(19);
+      expect(Date.now() - a).to.be.above(18);
     });
   });
 
