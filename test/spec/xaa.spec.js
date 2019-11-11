@@ -1,6 +1,7 @@
 "use strict";
 
 const xaa = require("../..");
+const { asyncVerify, expectError } = require("run-verify");
 
 describe("xaa", function() {
   describe("delay", function() {
@@ -23,6 +24,135 @@ describe("xaa", function() {
       const x = await xaa.delay(20, () => "hello");
       expect(x).to.equal("hello");
       expect(Date.now() - a).to.be.above(19);
+    });
+  });
+
+  describe("defer", function() {
+    it("should return defer object that can resolve", () => {
+      const defer = xaa.defer();
+      setTimeout(() => defer.resolve("hello"), 100);
+      return defer.promise.then(x => expect(x).equals("hello"));
+    });
+
+    it("should return defer object that can reject", () => {
+      const defer = xaa.defer();
+      setTimeout(() => defer.reject(new Error("oops")), 100);
+      return asyncVerify(expectError(() => defer.promise), r => {
+        expect(r).to.be.an("Error");
+        expect(r.message).equals("oops");
+      });
+    });
+  });
+
+  describe("timeout", function() {
+    it("should timeout run", () => {
+      let too;
+      return asyncVerify(
+        expectError(() => {
+          too = xaa.timeout(50, "foo");
+          return too.run(xaa.delay(150));
+        }),
+        err => {
+          expect(err.message).equal("foo");
+        },
+        expectError(() => {
+          return too.clear(); // test re-entrant
+        }),
+        err => {
+          expect(err.message).equal("foo");
+        }
+      );
+    });
+
+    it("should timeout run with default msg", () => {
+      let too;
+      return asyncVerify(
+        expectError(() => {
+          too = xaa.timeout(50);
+          return too.run(xaa.delay(150));
+        }),
+        err => {
+          expect(err.message).equal("operation timed out");
+        },
+        expectError(() => {
+          return too.clear(); // test re-entrant
+        }),
+        err => {
+          expect(err.message).equal("operation timed out");
+        }
+      );
+    });
+
+    it("should resolve", () => {
+      let too;
+      return asyncVerify(
+        () => {
+          too = xaa.timeout(50, "foo");
+          return too.run(Promise.resolve("hello"));
+        },
+        msg => {
+          expect(msg).equal("hello");
+        },
+        () => too.clear(), // test re-entrant
+        msg => {
+          expect(msg).equal("hello");
+        },
+        () => too.clear(5, 9), // test re-entrant
+        msg => {
+          expect(msg).equal("hello");
+        }
+      );
+    });
+
+    it("should resolve functions", () => {
+      return asyncVerify(
+        () => {
+          return xaa
+            .timeout(50, "foo")
+            .run([() => Promise.resolve("blah"), Promise.resolve("hello"), "wow"]);
+        },
+        results => {
+          expect(results).deep.equal(["blah", "hello", "wow"]);
+        }
+      );
+    });
+
+    it("should resolve bunch of values with runTimeout", () => {
+      return asyncVerify(
+        async () => {
+          return await xaa.runTimeout(
+            [
+              () => xaa.delay(10, 1),
+              () => xaa.delay(15, 2),
+              "some value",
+              Promise.resolve("more value")
+            ],
+            50
+          );
+        },
+        results => {
+          expect(results).deep.equal([1, 2, "some value", "more value"]);
+        }
+      );
+    });
+
+    it("should fail with runTimeout", () => {
+      return asyncVerify(
+        expectError(async () => {
+          return await xaa.runTimeout(
+            [
+              () => xaa.delay(10, 1),
+              () => xaa.delay(150, 2),
+              "some value",
+              Promise.resolve("more value")
+            ],
+            50
+          );
+        }),
+        err => {
+          expect(err.message).equal("operation timed out");
+        }
+      );
     });
   });
 
@@ -78,7 +208,7 @@ describe("xaa", function() {
         { concurrency: 3 }
       );
       expect(x).to.deep.equal([3, 6, 9, 12, 15, 18, 21, 24, 27]);
-      expect(Date.now() - a).to.be.below(250);
+      expect(Date.now() - a).to.be.below(275);
       expect(doneOrder).to.deep.equal([1, 3, 4, 5, 6, 2, 8, 9, 7]);
     });
 

@@ -1,7 +1,7 @@
 {
   "name": "xaa",
   "version": "1.0.2",
-  "description": "Some helpers for await/async",
+  "description": "async/await/Promise helpers - delay, defer, timeout, each, map, filter",
   "main": "lib/xaa.js",
   "scripts": {
     "test": "clap check",
@@ -12,9 +12,17 @@
     "url": "https://github.com/jchip/xaa.git"
   },
   "keywords": [
-    "await",
     "async",
-    "helpers"
+    "await",
+    "Promise",
+    "helpers",
+    "async/await",
+    "delay",
+    "defer",
+    "timeout",
+    "each",
+    "map",
+    "filter"
   ],
   "files": [
     "lib"
@@ -22,7 +30,8 @@
   "author": "Joel Chen",
   "license": "Apache-2.0",
   "devDependencies": {
-    "electrode-archetype-njs-module-dev": "^3.0.0"
+    "electrode-archetype-njs-module-dev": "^3.0.0",
+    "run-verify": "^1.2.1"
   },
   "nyc": {
     "all": true,
