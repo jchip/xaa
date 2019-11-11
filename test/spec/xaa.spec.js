@@ -82,12 +82,15 @@ describe("xaa", function() {
     it("should ignore cancel if already resolved", () => {
       let too;
       return asyncVerify(
-        () => {
+        next => {
           too = xaa.timeout(150, "foo");
           const promise = too.run(Promise.resolve("good"));
-          setTimeout(() => too.cancel(), 1);
-          return promise;
+          setTimeout(() => {
+            too.cancel();
+            next(null, promise);
+          }, 1);
         },
+        promise => promise,
         message => {
           expect(message).equal("good");
         }
