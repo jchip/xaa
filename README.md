@@ -24,13 +24,15 @@ async/await and Promise helpers.
 
 - `xaa.timeout(maxMs, rejectMsg = "operation timed out")`
 
-  - Return `{maxMs, rejectMsg, run, promise, resolve, reject, clear, id}`
+  - Return `{maxMs, rejectMsg, run, promise, resolve, reject, clear, done, cancel, timerId}`
 
   - `maxMs`, `rejectMsg` - max time in milli seconds to wait before throwing `new TimeoutError(rejectMsg)`
   - `run(tasks)` - function to run tasks that are subjected to the timeout. `tasks` can be a single or an array of Promise, function, or any value.
   - `promise`, `resolve`, `reject` - promise to wait for timeout and its `resolve` and `reject` callbacks.
-  - `clear` - function `clear(err, result)` to end the timeout. re-entrant.
-  - `id` - `setTimeout` id
+  - `clear` - function `clear()` to `clearTimeout(timerId)`. re-entrant OK.
+  - `done` - function `done(err, result)` to complete timeout. re-entrant OK.
+  - `cancel` - function `cancel(msg = "operation cancelled")` - alias for calling `timeout.clear(); timeout.reject(new TimeoutError(msg))`. re-entrant OK. no-op if already resolved.
+  - `timerId` - `setTimeout` returned id
 
   Examples:
 

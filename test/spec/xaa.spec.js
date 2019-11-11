@@ -56,10 +56,55 @@ describe("xaa", function() {
           expect(err.message).equal("foo");
         },
         expectError(() => {
-          return too.clear(); // test re-entrant
+          return too.done(); // test re-entrant
         }),
         err => {
           expect(err.message).equal("foo");
+        }
+      );
+    });
+
+    it("should cancel run", () => {
+      let too;
+      return asyncVerify(
+        expectError(() => {
+          too = xaa.timeout(50, "foo");
+          const promise = too.run(xaa.delay(150));
+          too.cancel();
+          return promise;
+        }),
+        err => {
+          expect(err.message).equal("operation cancelled");
+        }
+      );
+    });
+
+    it("should ignore cancel if already resolved", () => {
+      let too;
+      return asyncVerify(
+        () => {
+          too = xaa.timeout(150, "foo");
+          const promise = too.run(Promise.resolve("good"));
+          setTimeout(() => too.cancel(), 1);
+          return promise;
+        },
+        message => {
+          expect(message).equal("good");
+        }
+      );
+    });
+
+    it("should cancel run with custom message", () => {
+      let too;
+      return asyncVerify(
+        expectError(() => {
+          too = xaa.timeout(50, "foo");
+          const promise = too.run(xaa.delay(150));
+          too.cancel("cancelling test");
+          return promise;
+        }),
+        err => {
+          expect(err.message).equal("cancelling test");
         }
       );
     });
@@ -75,7 +120,7 @@ describe("xaa", function() {
           expect(err.message).equal("operation timed out");
         },
         expectError(() => {
-          return too.clear(); // test re-entrant
+          return too.done(); // test re-entrant
         }),
         err => {
           expect(err.message).equal("operation timed out");
@@ -93,11 +138,11 @@ describe("xaa", function() {
         msg => {
           expect(msg).equal("hello");
         },
-        () => too.clear(), // test re-entrant
+        () => too.done(), // test re-entrant
         msg => {
           expect(msg).equal("hello");
         },
-        () => too.clear(5, 9), // test re-entrant
+        () => too.done(5, 9), // test re-entrant
         msg => {
           expect(msg).equal("hello");
         }
