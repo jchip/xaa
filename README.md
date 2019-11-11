@@ -1,6 +1,6 @@
 # xaa
 
-Some helpers for await/async.
+Some helpers for async/await.
 
 - `async xaa.delay(ms, [val|valFunc])`
 
@@ -24,6 +24,6 @@ Some helpers for await/async.
 
 - `async xaa.wrap(func, ...args)`
 
-  - wrap a call to `func` with `awayc/await`, passing in `...args`
+  - wrap a call to `func` with `async/await`, passing in `...args`
 
 ---
