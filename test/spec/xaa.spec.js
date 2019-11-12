@@ -216,6 +216,12 @@ describe("xaa", function() {
   });
 
   describe("map", function() {
+    it("should map empty array", () => {
+      return xaa.map([]).then(r => {
+        expect(r).deep.equal([]);
+      });
+    });
+
     it("should map async", async () => {
       const x = await xaa.map([1, 2, 3, 4, 5], async v => {
         await xaa.delay(Math.random() * 20 + 2);
