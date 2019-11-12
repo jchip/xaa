@@ -247,7 +247,7 @@ describe("xaa", function() {
           if (v === 2) {
             await xaa.delay(120);
           } else if (v === 7) {
-            await xaa.delay(75);
+            await xaa.delay(85);
           }
           await xaa.delay(50);
           doneOrder.push(v);
@@ -256,8 +256,23 @@ describe("xaa", function() {
         { concurrency: 3 }
       );
       expect(x).to.deep.equal([3, 6, 9, 12, 15, 18, 21, 24, 27]);
-      expect(Date.now() - a).to.be.below(275);
+      expect(Date.now() - a).to.be.below(280);
       expect(doneOrder).to.deep.equal([1, 3, 4, 5, 6, 2, 8, 9, 7]);
+    });
+
+    it("should return partial for concurrency 1", () => {
+      return asyncVerify(
+        expectError(() =>
+          xaa.map([1, 2, 3, 4], v => {
+            if (v === 3) throw new Error("oops");
+            return v * 3;
+          })
+        ),
+        err => {
+          expect(err).to.be.an("Error");
+          expect(err.partial.filter(x => x)).to.deep.equal([3, 6]);
+        }
+      );
     });
 
     it("should handle mix result for concurrency", async () => {
