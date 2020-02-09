@@ -37,10 +37,13 @@ describe("xaa", function() {
     it("should return defer object that can reject", () => {
       const defer = xaa.defer();
       setTimeout(() => defer.reject(new Error("oops")), 100);
-      return asyncVerify(expectError(() => defer.promise), r => {
-        expect(r).to.be.an("Error");
-        expect(r.message).equals("oops");
-      });
+      return asyncVerify(
+        expectError(() => defer.promise),
+        r => {
+          expect(r).to.be.an("Error");
+          expect(r.message).equals("oops");
+        }
+      );
     });
   });
 
@@ -364,7 +367,25 @@ describe("xaa", function() {
           expect(err).to.be.an("Error");
           expect(err.message).to.equal("Test error");
           expect(Date.now() - a).to.be.below(100);
-          expect(doneOrder).to.deep.equal([2, 1, 3, 4, 7]);
+          expect(doneOrder).to.deep.equal([2, 1, 3, 4]);
+        }
+      );
+    });
+
+    it("should ignore multiple failures and use the first one", async () => {
+      return asyncVerify(
+        expectError(() => {
+          return xaa.map(
+            [1, 2, 3],
+            async v => {
+              await xaa.delay(v * 10);
+              throw new Error(`error-${v}`);
+            },
+            { concurrency: 3 }
+          );
+        }),
+        err => {
+          expect(err.message).to.equal("error-1");
         }
       );
     });
