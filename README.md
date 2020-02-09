@@ -8,7 +8,10 @@ async/await and Promise helpers.
 
 - `xaa.defer([Promise = global.Promise])`
 
-  - Return `{promise, resolve, reject}`
+  - Return `{promise, resolve, reject, done}`
+  - Where:
+    - `promise, resolve, reject` - the defer promise and its resolve and reject callbacks
+    - `done` - a normal callback that takes `(err, result)` and call `reject` or `resolve` accordingly.
 
 - `xaa.TimeoutError` - error thrown by `xaa.timeout` on time out.
 
