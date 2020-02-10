@@ -75,5 +75,6 @@ async/await and Promise helpers.
 - `async xaa.wrap(func, ...args)`
 
   - wrap a call to `func` with `async/await`, passing in `...args`
+  - for enclosing a function into a promise and capturing any errors
 
 ---

@@ -355,6 +355,7 @@ describe("xaa", function() {
               if (v === 5) {
                 throw new Error("Test error");
               }
+
               return xaa.delay(50).then(() => {
                 doneOrder.push(v);
                 return v * 3;
@@ -363,10 +364,11 @@ describe("xaa", function() {
             { concurrency: 3 }
           );
         }),
-        err => {
+        async err => {
+          expect(Date.now() - a).to.be.below(100);
+          await xaa.delay(50);
           expect(err).to.be.an("Error");
           expect(err.message).to.equal("Test error");
-          expect(Date.now() - a).to.be.below(100);
           expect(doneOrder).to.deep.equal([2, 1, 3, 4]);
         }
       );
