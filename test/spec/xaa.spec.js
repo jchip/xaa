@@ -45,6 +45,20 @@ describe("xaa", function() {
         }
       );
     });
+
+    it("should return defer object with done", () => {
+      const defer1 = xaa.defer();
+      expect(defer1.done.length).to.below(2);
+      setTimeout(() => defer1.done(new Error("oops")));
+      const defer2 = xaa.defer();
+      setTimeout(() => defer2.done(null, "hello"));
+      return asyncVerify(
+        expectError(() => defer1.promise),
+        err => expect(err.message).to.equal("oops"),
+        () => defer2.promise,
+        r => expect(r).to.equal("hello")
+      );
+    });
   });
 
   describe("timeout", function() {
@@ -223,6 +237,36 @@ describe("xaa", function() {
       return xaa.map([]).then(r => {
         expect(r).deep.equal([]);
       });
+    });
+
+    it("should execute first level mapping synchronously without concurrency", async () => {
+      const output = [];
+
+      const promise = xaa.map(
+        [1, 2, 3],
+        async v => {
+          output.push(v);
+        },
+        { concurrency: 1 }
+      );
+      output.push(5);
+      await promise;
+      expect(output).to.deep.equal([1, 5, 2, 3]);
+    });
+
+    it("should execute first level mapping synchronously with concurrency", async () => {
+      const output = [];
+
+      const promise = xaa.map(
+        [1, 2, 3],
+        async v => {
+          output.push(v);
+        },
+        { concurrency: 2 }
+      );
+      output.push(5);
+      await promise;
+      expect(output).to.deep.equal([1, 2, 5, 3]);
     });
 
     it("should map async", async () => {
