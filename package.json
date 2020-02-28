@@ -2,10 +2,14 @@
   "name": "xaa",
   "version": "1.2.2",
   "description": "async/await/Promise helpers - delay, defer, timeout, each, map, filter",
-  "main": "lib/xaa.js",
+  "main": "dist/xaa.js",
   "scripts": {
-    "test": "clap check",
-    "coverage": "clap check"
+    "test": "clap -n -x compile test-only",
+    "coverage": "clap -n -x compile check",
+    "compile": "tsc",
+    "prepublishOnly": "clap -n build docs",
+    "docs": "typedoc --excludeNotExported --out docs src",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -25,15 +29,31 @@
     "filter"
   ],
   "files": [
-    "lib"
+    "dist"
   ],
   "author": "Joel Chen",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@xarc/module-dev": "^1.0.0",
-    "run-verify": "^1.2.1"
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/node": "^13.7.6",
+    "@typescript-eslint/eslint-plugin": "^2.21.0",
+    "@typescript-eslint/parser": "^2.21.0",
+    "@xarc/module-dev": "^2.0.1",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-walmart": "^2.2.1",
+    "eslint-plugin-filenames": "^1.1.0",
+    "eslint-plugin-jsdoc": "^21.0.0",
+    "run-verify": "^1.2.1",
+    "source-map-support": "^0.5.16",
+    "ts-node": "^8.6.2",
+    "typedoc": "^0.16.11",
+    "typescript": "^3.8.3"
   },
   "nyc": {
+    "extends": [
+      "@istanbuljs/nyc-config-typescript"
+    ],
     "all": true,
     "reporter": [
       "lcov",
@@ -41,10 +61,12 @@
       "text-summary"
     ],
     "exclude": [
-      "coverage",
       "*clap.js",
-      "gulpfile.js",
+      "*clap.ts",
+      "coverage",
       "dist",
+      "docs",
+      "gulpfile.js",
       "test"
     ],
     "check-coverage": true,
@@ -52,9 +74,18 @@
     "branches": 100,
     "functions": 100,
     "lines": 100,
-    "cache": true
+    "cache": false
   },
   "prettier": {
     "printWidth": 100
-  }
+  },
+  "mocha": {
+    "require": [
+      "ts-node/register",
+      "source-map-support/register",
+      "@xarc/module-dev/config/test/setup.js"
+    ],
+    "recursive": true
+  },
+  "dependencies": {}
 }

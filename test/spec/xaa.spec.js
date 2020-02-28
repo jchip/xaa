@@ -1,6 +1,6 @@
 "use strict";
 
-const xaa = require("../..");
+const xaa = require("../../src/xaa");
 const { asyncVerify, expectError } = require("run-verify");
 
 describe("xaa", function() {
@@ -29,7 +29,7 @@ describe("xaa", function() {
 
   describe("defer", function() {
     it("should return defer object that can resolve", () => {
-      const defer = xaa.defer();
+      const defer = new xaa.Defer();
       setTimeout(() => defer.resolve("hello"), 100);
       return defer.promise.then(x => expect(x).equals("hello"));
     });
@@ -71,12 +71,6 @@ describe("xaa", function() {
         }),
         err => {
           expect(err.message).equal("foo");
-        },
-        expectError(() => {
-          return too.done(); // test re-entrant
-        }),
-        err => {
-          expect(err.message).equal("foo");
         }
       );
     });
@@ -91,7 +85,8 @@ describe("xaa", function() {
           return promise;
         }),
         err => {
-          expect(err.message).equal("operation cancelled");
+          expect(err.message).contains("operation cancelled");
+          expect(too.isDone()).equal(true);
         }
       );
     });
@@ -137,13 +132,7 @@ describe("xaa", function() {
           return too.run(xaa.delay(150));
         }),
         err => {
-          expect(err.message).equal("operation timed out");
-        },
-        expectError(() => {
-          return too.done(); // test re-entrant
-        }),
-        err => {
-          expect(err.message).equal("operation timed out");
+          expect(err.message).contains("operation timed out");
         }
       );
     });
@@ -155,14 +144,6 @@ describe("xaa", function() {
           too = xaa.timeout(50, "foo");
           return too.run(Promise.resolve("hello"));
         },
-        msg => {
-          expect(msg).equal("hello");
-        },
-        () => too.done(), // test re-entrant
-        msg => {
-          expect(msg).equal("hello");
-        },
-        () => too.done(5, 9), // test re-entrant
         msg => {
           expect(msg).equal("hello");
         }
@@ -215,7 +196,7 @@ describe("xaa", function() {
           );
         }),
         err => {
-          expect(err.message).equal("operation timed out");
+          expect(err.message).contains("operation timed out");
         }
       );
     });

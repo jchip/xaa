@@ -2,49 +2,24 @@
 
 async/await and Promise helpers.
 
-- `async xaa.delay(ms, [val|valFunc])`
+## Install and Usage
 
-  - wait `ms` milliseconds and then return `val` or returned value of calling `valFunc`.
+```
+npm i xaa
+```
 
-- `xaa.defer([Promise = global.Promise])`
+## Examples:
 
-  - Return `{promise, resolve, reject, done}`
-  - Where:
-    - `promise, resolve, reject` - the defer promise and its resolve and reject callbacks
-    - `done` - a normal callback that takes `(err, result)` and call `reject` or `resolve` accordingly.
+### xaa.timeout
 
-- `xaa.TimeoutError` - error thrown by `xaa.timeout` on time out.
+```js
+import { timeout } from "xaa";
 
-  - `new TimeoutError(msg)`
-
-- `async xaa.runTimeout(tasks, maxMs, rejectMsg)`
-
-  - shortcut for:
-
-  ```js
-  return await xaa.timeout(maxMs, rejectMsg).run(tasks);
-  ```
-
-- `xaa.timeout(maxMs, rejectMsg = "operation timed out")`
-
-  - Return `{maxMs, rejectMsg, run, promise, resolve, reject, clear, done, cancel, timerId}`
-
-  - `maxMs`, `rejectMsg` - max time in milli seconds to wait before throwing `new TimeoutError(rejectMsg)`
-  - `run(tasks)` - function to run tasks that are subjected to the timeout. `tasks` can be a single or an array of Promise, function, or any value.
-  - `promise`, `resolve`, `reject` - promise to wait for timeout and its `resolve` and `reject` callbacks.
-  - `clear` - function `clear()` to `clearTimeout(timerId)`. re-entrant OK.
-  - `done` - function `done(err, result)` to complete timeout. re-entrant OK.
-  - `cancel` - function `cancel(msg = "operation cancelled")` - alias for calling `timeout.clear(); timeout.reject(new TimeoutError(msg))`. re-entrant OK. no-op if already resolved.
-  - `timerId` - `setTimeout` returned id
-
-  Examples:
-
-  ```js
+async function test() {
   // will throw TimeoutError
-  await xaa.timeout(50, "took too long").run(xaa.delay(100));
+  await timeout(50, "took too long").run(xaa.delay(100));
   // will run the two functions and wait for them
-  await xaa
-    .timeout(50, "oops")
+  await timeout(50, "oops")
     .run([
       () => xaa.delay(10, 1),
       () => xaa.delay(15, 2),
@@ -54,27 +29,21 @@ async/await and Promise helpers.
     .then(results => {
       // results === [1, 2, "some value", "more value"]
     });
-  ```
+}
+```
 
-* `async xaa.each(array, iterFunc)`
+### xaa.map
 
-  - await calling `iterFunc` with each `(element, index)` from array
+```js
+import { map } from xaa;
 
-- `async xaa.map(array, func, [{concurrency}])`
-
-  - map array to the awaited value of calling `func` with each `(element, index)`.
-
-- `async xaa.filter(array, func)`
-
-  - filter array by the awaited value of calling `func` with each `(element, index)`
-
-- `async xaa.try(func, [defaultVal|defaultFunc])`
-
-  - call `func` with try/catch, if caught, then return `defaultVal` or the returned value of `defaultFunc`
-
-- `async xaa.wrap(func, ...args)`
-
-  - wrap a call to `func` with `async/await`, passing in `...args`
-  - for enclosing a function into a promise and capturing any errors
+async function test() {
+  return await map(
+    ["http://url1", "http://url2"],
+    async url => fetch(url),
+    { concurrency: 2 }
+  );
+}
+```
 
 ---
