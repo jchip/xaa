@@ -3,6 +3,7 @@
   "version": "1.3.0",
   "description": "async/await/Promise helpers - delay, defer, timeout, each, map, filter",
   "main": "dist/xaa.js",
+  "types": "dist/xaa.d.ts",
   "scripts": {
     "test": "clap -n -x compile test-only",
     "coverage": "clap -n -x compile check",
