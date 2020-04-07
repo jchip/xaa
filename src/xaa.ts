@@ -247,6 +247,38 @@ export class MapError extends Error {
   partial: any[];
 }
 
+/** options for xaa.map */
+export type MapOptions = {
+  /** number of items to map concurrently */
+  concurrency: number;
+  /** the this passed to the map callback */
+  thisArg?: any;
+};
+
+/** context from xaa.map to the mapper callback */
+export type MapContext = {
+  /**
+   * indicate if another map operation during concurrent map has failed
+   * Mapping should observe this flag whenever possible and avoid continuing
+   * if it makes sense.
+   */
+  failed?: boolean;
+  /**
+   * the original array that's passed to xaa.map
+   */
+  array: any[];
+};
+
+/**
+ * callback function for xaa.map to map the value.
+ *
+ * @param value value to map
+ * @param index index of the value in the array
+ * @param context MapContext
+ * @returns any or a promise
+ */
+export type MapFunction = (value: any, index: number, context: MapContext) => any | Promise<any>;
+
 /**
  * async map for array that supports concurrency
  *
@@ -254,20 +286,23 @@ export class MapError extends Error {
  *
  * @param array array to map
  * @param func mapper callback
- * @param concurrency concurrency
+ * @param options MapOptions
  * @returns promise with mapped result
  */
-function multiMap(array: any[], func: Function, concurrency: number): Promise<any> {
+function multiMap(array: any[], func: MapFunction, options: MapOptions): Promise<any> {
   const awaited = new Array(array.length);
 
   let error: MapError;
   let completedCount = 0;
-  let freeSlots = concurrency;
+  let freeSlots = options.concurrency;
   let index = 0;
+
+  const context: MapContext = { array };
 
   const defer = makeDefer();
 
   const fail = (err: Error): void => {
+    context.failed = true;
     if (!error) {
       error = err as MapError;
       error.partial = awaited;
@@ -298,7 +333,7 @@ function multiMap(array: any[], func: Function, concurrency: number): Promise<an
     };
 
     try {
-      const res = func(array[pendingIx], pendingIx, array);
+      const res = func.call(options.thisArg, array[pendingIx], pendingIx, context);
       if (res && res.then) {
         res.then(save, fail);
         mapNext();
@@ -323,24 +358,18 @@ function multiMap(array: any[], func: Function, concurrency: number): Promise<an
   return defer.promise;
 }
 
-/** options for xaa.map */
-type MapOptions = {
-  /** number of items to map concurrenly */
-  concurrency: number;
-};
-
 /**
  * async map array with concurrency
  * - intended to be similar to `bluebird.map`
  *
  * @param array - input array for map
- * @param func - mapper callback
- * @param options - options
+ * @param func - callback to map values from the array
+ * @param options - MapOptions
  * @returns promise with mapped result
  */
 export async function map(
   array: any[],
-  func: Function,
+  func: MapFunction,
   options: MapOptions = { concurrency: 1 }
 ): Promise<any> {
   assert(Array.isArray(array), `xaa.map expecting an array but got ${typeof array}`);
@@ -348,13 +377,15 @@ export async function map(
     return [];
   }
   if (options.concurrency > 1) {
-    return multiMap(array, func, options.concurrency);
+    return multiMap(array, func, options);
   } else {
     const awaited = new Array(array.length);
 
+    const context: MapContext = { array, failed: false };
+
     try {
       for (let i = 0; i < array.length; i++) {
-        awaited[i] = await func(array[i], i, array);
+        awaited[i] = await func.call(options.thisArg, array[i], i, context);
       }
 
       return awaited;
@@ -410,14 +441,15 @@ export async function filter(array: any[], func: Function) {
 }
 
 /**
- * try to call and await a function. If it throws, then return `valOrFunc`.
+ * try to call and await a function and if it throws, then return `valOrFunc`.
+ *
  * - if `valOrFunc` is a function, then return `await valOrFunc(err)`
  *
  * @param func function to try
  * @param valOrFunc value, or callback to get value, to return if `func` throws
  * @returns awaited result, `valOrFunc`, or `await valOrFunc(err)`.
  */
-export async function tryFunc(func: Function, valOrFunc: any): Promise<any> {
+export async function tryCatch(func: Function, valOrFunc: any): Promise<any> {
   try {
     const r = func();
     return await r;
@@ -431,7 +463,7 @@ export async function tryFunc(func: Function, valOrFunc: any): Promise<any> {
   }
 }
 
-export { tryFunc as try };
+export { tryCatch as try };
 
 /**
  * Wrap the calling of a function into async/await (promise) context

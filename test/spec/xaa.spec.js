@@ -416,6 +416,41 @@ describe("xaa", function() {
         }
       );
     });
+
+    const testInflight = (observing, expectCount) => {
+      let count = 0;
+      return asyncVerify(
+        expectError(() => {
+          return xaa.map(
+            [1, 2, 3, 4, 5, 6],
+            async (v, ix, context) => {
+              if (v === 6) {
+                throw new Error("oops");
+              }
+              await xaa.delay(10);
+              if (observing && context.failed) {
+                return;
+              }
+
+              count++;
+            },
+            { concurrency: 6 }
+          );
+        }),
+        () => xaa.delay(20),
+        () => {
+          expect(count).equal(expectCount);
+        }
+      );
+    };
+
+    it("should allow inflight map ops to finish even if error occurred", async () => {
+      return testInflight(false, 5);
+    });
+
+    it("should allow inflight map ops to observe that error occurred", async () => {
+      return testInflight(true, 0);
+    });
   });
 
   describe("filter", function() {
@@ -430,27 +465,27 @@ describe("xaa", function() {
     });
   });
 
-  describe("try", function() {
+  describe("tryCatch", function() {
     it("should return if there's no error", async () => {
-      const x = await xaa.try(() => Promise.resolve("hello"));
+      const x = await xaa.tryCatch(() => Promise.resolve("hello"));
       expect(x).to.equal("hello");
-      const x2 = await xaa.try(() => "hello");
+      const x2 = await xaa.tryCatch(() => "hello");
       expect(x2).to.equal("hello");
     });
 
     it("should catch error", async () => {
-      const x = await xaa.try(() => {
+      const x = await xaa.tryCatch(() => {
         throw new Error("test");
       });
       expect(x).to.equal(undefined);
-      const x2 = await xaa.try(() => {
+      const x2 = await xaa.tryCatch(() => {
         throw new Error("test");
       }, "oops");
       expect(x2).to.equal("oops");
     });
 
     it("should catch error and call sync handler", async () => {
-      const x = await xaa.try(
+      const x = await xaa.tryCatch(
         () => {
           throw new Error("blah");
         },
@@ -460,7 +495,7 @@ describe("xaa", function() {
     });
 
     it("should catch error and call async handler", async () => {
-      const x = await xaa.try(
+      const x = await xaa.tryCatch(
         () => {
           throw new Error("blah");
         },
