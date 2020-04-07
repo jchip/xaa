@@ -1,12 +1,21 @@
 import * as assert from "assert";
 
+interface Run<T> {
+  (tasks: Promise<T>): Promise<T>;
+  (tasks: Promise<T>[]): Promise<T[]>;
+}
+
+interface RunThing<T> {
+  run: Run<T>;
+}
+
 /**
  * Defer object for fulfilling a promise later in other events
  *
  * To use, use `xaa.makeDefer` or its alias `xaa.defeer`.
  *
  */
-export class Defer {
+export class Defer<T> {
   /**
    * construct Defer
    *
@@ -19,9 +28,9 @@ export class Defer {
     });
   }
   /** The promise object for the defer */
-  promise: Promise<any>;
+  promise: Promise<T>;
   /** resolve the defered promise */
-  resolve: (result?: any) => void;
+  resolve: (result?: T) => void;
   /** reject the deferred promise */
   reject: (reason?: any) => void;
   /**
@@ -55,7 +64,7 @@ export class Defer {
  * @param Promise - optional Promise constructor.
  * @returns Defer instance
  */
-export function makeDefer(Promise: PromiseConstructor = global.Promise): Defer {
+export function makeDefer<T>(Promise: PromiseConstructor = global.Promise): Defer<T> {
   return new Defer(Promise);
 }
 
@@ -86,16 +95,22 @@ export class TimeoutError extends Error {
  * It can be an async function.
  * @returns `valOrFunc` or its returned value if it's a function.
  */
-export async function delay(delayMs: number, valOrFunc?: any) {
+type Consumer<T> = (item: T, index?: number) => unknown;
+type Producer<T> = () => (T | Promise<T>);
+type Predicate<T> = (item: T, index?: number) => boolean;
+type ValueOrProducer<T> = T | Promise<T> | Producer<T>;
+type ValueOrFunctionConsumingError<T> = T | Promise<T> | ((err?: Error) => T);
+
+export async function delay<T>(delayMs: number, valOrFunc?: ValueOrProducer<T>): Promise<T> {
   let handler: (resolve: any) => NodeJS.Timeout;
 
   const c = valOrFunc && valOrFunc.constructor.name;
 
   if (c === "AsyncFunction") {
     handler = (resolve: (res: any) => any) =>
-      setTimeout(async () => resolve(await valOrFunc()), delayMs);
+      setTimeout(async () => resolve(await (valOrFunc as Function)()), delayMs);
   } else if (c === "Function") {
-    handler = (resolve: (res: any) => any) => setTimeout(() => resolve(valOrFunc()), delayMs);
+    handler = (resolve: (res: any) => any) => setTimeout(() => resolve((valOrFunc as Function)()), delayMs);
   } else {
     handler = (resolve: (res: any) => any) => setTimeout(() => resolve(valOrFunc), delayMs);
   }
@@ -108,14 +123,14 @@ export async function delay(delayMs: number, valOrFunc?: any) {
  *
  * Please use `xaa.timeout` or `xaa.runTimeout` APIs instead.
  */
-export class TimeoutRunner {
+export class TimeoutRunner<T> implements RunThing<T> {
   constructor(maxMs: number, rejectMsg: string) {
     this.maxMs = maxMs;
     this.rejectMsg = rejectMsg;
     this.defer = makeDefer();
     this.timeout = setTimeout(() => this.defer.reject(new TimeoutError(rejectMsg)), maxMs);
   }
-  private defer: Defer;
+  private defer: Defer<T>;
   /** setTimeout handle */
   private timeout: NodeJS.Timeout;
   /**
@@ -142,9 +157,9 @@ export class TimeoutRunner {
    * @param tasks - Promise or function that returns Promise, or array of them.
    * @returns Promise to wait for tasks to complete, or timeout error.
    */
-  async run(tasks: Promise<any> | Function | Array<Function | Promise<any>>): Promise<any> {
-    const process = (x: any) => (typeof x === "function" ? x() : x);
-    let arrTasks: Promise<any[]>;
+  async run(tasks) {
+    const process = async (x: any) => (typeof x === "function" ? x() : x);
+    let arrTasks: Promise<any>;
     if (!Array.isArray(tasks)) {
       arrTasks = process(tasks);
     } else {
@@ -196,7 +211,7 @@ export class TimeoutRunner {
   /** the error if running failed */
   error?: Error;
   /** the result from running tasks */
-  result?: any;
+  result?: T;
 }
 
 /**
@@ -218,10 +233,10 @@ export class TimeoutRunner {
  * @param rejectMsg - message to reject with when timeout triggers
  * @returns TimeoutRunner object
  */
-export function timeout(
+export function timeout<T>(
   maxMs: number,
   rejectMsg: string = "xaa TimeoutRunner operation timed out"
-): TimeoutRunner {
+): TimeoutRunner<T> {
   return new TimeoutRunner(maxMs, rejectMsg);
 }
 
@@ -233,7 +248,7 @@ export function timeout(
  * @param rejectMsg - message to reject with if operation timed out
  * @returns promise results from all tasks
  */
-export async function runTimeout(tasks: Promise<any> | Promise<any>[], maxMs: number, rejectMsg?) {
+export async function runTimeout<T>(tasks: Promise<T> | Promise<T>[], maxMs: number, rejectMsg?) {
   return await timeout(maxMs, rejectMsg).run(tasks);
 }
 
@@ -277,7 +292,7 @@ export type MapContext = {
  * @param context MapContext
  * @returns any or a promise
  */
-export type MapFunction = (value: any, index: number, context: MapContext) => any | Promise<any>;
+export type MapFunction<T, O> = (value: T, index: number, context: MapContext) => O | Promise<O>;
 
 /**
  * async map for array that supports concurrency
@@ -289,8 +304,8 @@ export type MapFunction = (value: any, index: number, context: MapContext) => an
  * @param options MapOptions
  * @returns promise with mapped result
  */
-function multiMap(array: any[], func: MapFunction, options: MapOptions): Promise<any> {
-  const awaited = new Array(array.length);
+function multiMap<T, O>(array: T[], func: MapFunction<T, O>, options: MapOptions): Promise<O[]> {
+  const awaited = new Array<O>(array.length);
 
   let error: MapError;
   let completedCount = 0;
@@ -299,7 +314,7 @@ function multiMap(array: any[], func: MapFunction, options: MapOptions): Promise
 
   const context: MapContext = { array };
 
-  const defer = makeDefer();
+  const defer = makeDefer<O[]>();
 
   const fail = (err: Error): void => {
     context.failed = true;
@@ -367,11 +382,11 @@ function multiMap(array: any[], func: MapFunction, options: MapOptions): Promise
  * @param options - MapOptions
  * @returns promise with mapped result
  */
-export async function map(
-  array: any[],
-  func: MapFunction,
+export async function map<T, O>(
+  array: T[],
+  func: MapFunction<T, O>,
   options: MapOptions = { concurrency: 1 }
-): Promise<any> {
+): Promise<O[]> {
   assert(Array.isArray(array), `xaa.map expecting an array but got ${typeof array}`);
   if (array.length < 1) {
     return [];
@@ -409,7 +424,7 @@ export async function map(
  * @param array array to each
  * @param func callback for each
  */
-export async function each(array: any[], func: Function) {
+export async function each<T>(array: T[], func: Consumer<T>) {
   for (let i = 0; i < array.length; i++) {
     await func(array[i], i);
   }
@@ -428,7 +443,7 @@ export async function each(array: any[], func: Function) {
  * @param func callback for filter
  * @returns filtered result
  */
-export async function filter(array: any[], func: Function) {
+export async function filter<T>(array: T[], func: Predicate<T>) {
   const filtered = [];
 
   for (let i = 0; i < array.length; i++) {
@@ -449,18 +464,19 @@ export async function filter(array: any[], func: Function) {
  * @param valOrFunc value, or callback to get value, to return if `func` throws
  * @returns awaited result, `valOrFunc`, or `await valOrFunc(err)`.
  */
-export async function tryCatch(func: Function, valOrFunc: any): Promise<any> {
-  try {
-    const r = func();
-    return await r;
-  } catch (err) {
-    if (typeof valOrFunc === "function") {
-      const r = valOrFunc(err);
+export async function tryCatch<T, TAlt>(func: () => T,
+  valOrFunc: ValueOrFunctionConsumingError<TAlt>): Promise<T | TAlt> {
+    try {
+      const r = func();
       return await r;
-    }
+    } catch (err) {
+      if (typeof valOrFunc === "function") {
+        const r = (valOrFunc as Function)(err);
+        return await r;
+      }
 
-    return valOrFunc;
-  }
+      return valOrFunc;
+    }
 }
 
 export { tryCatch as try };
@@ -473,6 +489,7 @@ export { tryCatch as try };
  * @param args arguments to pass to `func`
  * @returns result from `func`
  */
-export async function wrap(func: Function, ...args: any[]): Promise<any> {
+export async function wrap<T, F extends (...args: any[]) => T>
+    (func: F, ...args: Parameters<F>): Promise<T> {
   return await func(...args);
 }
