@@ -1,13 +1,10 @@
 import * as assert from "assert";
 
-interface Run<T> {
-  (tasks: Promise<T>): Promise<T>;
-  (tasks: Promise<T>[]): Promise<T[]>;
-}
-
-interface RunThing<T> {
-  run: Run<T>;
-}
+type Consumer<T> = (item: T, index?: number) => unknown;
+type Producer<T> = () => (T | Promise<T>);
+type Predicate<T> = (item: T, index?: number) => boolean;
+type ValueOrProducer<T> = T | Promise<T> | Producer<T>;
+type ValueOrFunctionConsumingError<T> = T | Promise<T> | ((err?: Error) => T);
 
 /**
  * Defer object for fulfilling a promise later in other events
@@ -95,12 +92,6 @@ export class TimeoutError extends Error {
  * It can be an async function.
  * @returns `valOrFunc` or its returned value if it's a function.
  */
-type Consumer<T> = (item: T, index?: number) => unknown;
-type Producer<T> = () => (T | Promise<T>);
-type Predicate<T> = (item: T, index?: number) => boolean;
-type ValueOrProducer<T> = T | Promise<T> | Producer<T>;
-type ValueOrFunctionConsumingError<T> = T | Promise<T> | ((err?: Error) => T);
-
 export async function delay<T>(delayMs: number, valOrFunc?: ValueOrProducer<T>): Promise<T> {
   let handler: (resolve: any) => NodeJS.Timeout;
 
@@ -123,7 +114,7 @@ export async function delay<T>(delayMs: number, valOrFunc?: ValueOrProducer<T>):
  *
  * Please use `xaa.timeout` or `xaa.runTimeout` APIs instead.
  */
-export class TimeoutRunner<T> implements RunThing<T> {
+export class TimeoutRunner<T> {
   constructor(maxMs: number, rejectMsg: string) {
     this.maxMs = maxMs;
     this.rejectMsg = rejectMsg;
