@@ -251,9 +251,9 @@ export async function runTimeout<T>(tasks: Runnable<T>, maxMs: number, rejectMsg
  *
  * Contains a partial field for result mapped before error was encountered.
  */
-export class MapError extends Error {
+export class MapError<T> extends Error {
   /** the result that has been mapped before error was encountered */
-  partial: any[];
+  partial: T[];
 }
 
 /** options for xaa.map */
@@ -265,7 +265,7 @@ export type MapOptions = {
 };
 
 /** context from xaa.map to the mapper callback */
-export type MapContext = {
+export type MapContext<T> = {
   /**
    * indicate if another map operation during concurrent map has failed
    * Mapping should observe this flag whenever possible and avoid continuing
@@ -275,7 +275,7 @@ export type MapContext = {
   /**
    * the original array that's passed to xaa.map
    */
-  array: readonly any[];
+  array: readonly T[];
 };
 
 /**
@@ -286,7 +286,7 @@ export type MapContext = {
  * @param context MapContext
  * @returns any or a promise
  */
-export type MapFunction<T, O> = (value: T, index: number, context: MapContext) => O | Promise<O>;
+export type MapFunction<T, O> = (value: T, index: number, context: MapContext<T>) => O | Promise<O>;
 
 /**
  * async map for array that supports concurrency
@@ -301,19 +301,19 @@ export type MapFunction<T, O> = (value: T, index: number, context: MapContext) =
 function multiMap<T, O>(array: readonly T[], func: MapFunction<T, O>, options: MapOptions): Promise<O[]> {
   const awaited = new Array<O>(array.length);
 
-  let error: MapError;
+  let error: MapError<O>;
   let completedCount = 0;
   let freeSlots = options.concurrency;
   let index = 0;
 
-  const context: MapContext = { array };
+  const context: MapContext<T> = { array };
 
   const defer = makeDefer<O[]>();
 
   const fail = (err: Error): void => {
     context.failed = true;
     if (!error) {
-      error = err as MapError;
+      error = err as MapError<O>;
       error.partial = awaited;
       defer.reject(error);
     }
@@ -334,7 +334,7 @@ function multiMap<T, O>(array: readonly T[], func: MapFunction<T, O>, options: M
     freeSlots--;
     const pendingIx = index++;
 
-    const save = (x: any) => {
+    const save = (x: O) => {
       completedCount++;
       freeSlots++;
       awaited[pendingIx] = x;
@@ -388,9 +388,9 @@ export async function map<T, O>(
   if (options.concurrency > 1) {
     return multiMap(array, func, options);
   } else {
-    const awaited = new Array(array.length);
+    const awaited = new Array<O>(array.length);
 
-    const context: MapContext = { array, failed: false };
+    const context: MapContext<T> = { array, failed: false };
 
     try {
       for (let i = 0; i < array.length; i++) {
@@ -399,7 +399,7 @@ export async function map<T, O>(
 
       return awaited;
     } catch (err) {
-      (err as MapError).partial = awaited;
+      (err as MapError<O>).partial = awaited;
       throw err;
     }
   }
