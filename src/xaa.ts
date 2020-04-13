@@ -275,7 +275,7 @@ export type MapContext = {
   /**
    * the original array that's passed to xaa.map
    */
-  array: any[];
+  array: readonly any[];
 };
 
 /**
@@ -298,7 +298,7 @@ export type MapFunction<T, O> = (value: T, index: number, context: MapContext) =
  * @param options MapOptions
  * @returns promise with mapped result
  */
-function multiMap<T, O>(array: T[], func: MapFunction<T, O>, options: MapOptions): Promise<O[]> {
+function multiMap<T, O>(array: readonly T[], func: MapFunction<T, O>, options: MapOptions): Promise<O[]> {
   const awaited = new Array<O>(array.length);
 
   let error: MapError;
@@ -377,7 +377,7 @@ function multiMap<T, O>(array: T[], func: MapFunction<T, O>, options: MapOptions
  * @returns promise with mapped result
  */
 export async function map<T, O>(
-  array: T[],
+  array: readonly T[],
   func: MapFunction<T, O>,
   options: MapOptions = { concurrency: 1 }
 ): Promise<O[]> {
@@ -418,7 +418,7 @@ export async function map<T, O>(
  * @param array array to each
  * @param func callback for each
  */
-export async function each<T>(array: T[], func: Consumer<T>) {
+export async function each<T>(array: readonly T[], func: Consumer<T>) {
   for (let i = 0; i < array.length; i++) {
     await func(array[i], i);
   }
@@ -437,7 +437,7 @@ export async function each<T>(array: T[], func: Consumer<T>) {
  * @param func callback for filter
  * @returns filtered result
  */
-export async function filter<T>(array: T[], func: Predicate<T>) {
+export async function filter<T>(array: readonly T[], func: Predicate<T>) {
   const filtered = [];
 
   for (let i = 0; i < array.length; i++) {
