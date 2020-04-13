@@ -4,7 +4,7 @@ type Consumer<T> = (item: T, index?: number) => unknown;
 type Producer<T> = () => (T | Promise<T>);
 type Predicate<T> = (item: T, index?: number) => boolean;
 type ValueOrProducer<T> = T | Promise<T> | Producer<T>;
-type ValueOrFunctionConsumingError<T> = T | Promise<T> | ((err?: Error) => T);
+type ValueOrErrorHandler<T> = T | Promise<T> | ((err?: Error) => T);
 
 type Task<T> = Promise<T> | (() => Promise<T>);
 type Tasks<T extends readonly any[]> = {
@@ -459,7 +459,7 @@ export async function filter<T>(array: readonly T[], func: Predicate<T>) {
  * @returns awaited result, `valOrFunc`, or `await valOrFunc(err)`.
  */
 export async function tryCatch<T, TAlt>(func: () => T,
-  valOrFunc: ValueOrFunctionConsumingError<TAlt>): Promise<T | TAlt> {
+  valOrFunc: ValueOrErrorHandler<TAlt>): Promise<T | TAlt> {
     try {
       const r = func();
       return await r;
