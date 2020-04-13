@@ -6,6 +6,12 @@ type Predicate<T> = (item: T, index?: number) => boolean;
 type ValueOrProducer<T> = T | Promise<T> | Producer<T>;
 type ValueOrFunctionConsumingError<T> = T | Promise<T> | ((err?: Error) => T);
 
+type Task<T> = Promise<T> | (() => Promise<T>);
+type Tasks<T extends readonly any[]> = {
+  [P in keyof T]: Task<T[P]>;
+};
+type Runnable<T> = T extends readonly any[] ? Tasks<T> : Task<T>;
+
 /**
  * Defer object for fulfilling a promise later in other events
  *
@@ -148,14 +154,9 @@ export class TimeoutRunner<T> {
    * @param tasks - Promise or function that returns Promise, or array of them.
    * @returns Promise to wait for tasks to complete, or timeout error.
    */
-  async run(tasks) {
-    const process = async (x: any) => (typeof x === "function" ? x() : x);
-    let arrTasks: Promise<any>;
-    if (!Array.isArray(tasks)) {
-      arrTasks = process(tasks);
-    } else {
-      arrTasks = Promise.all(tasks.map(process));
-    }
+  async run(tasks: Runnable<T>) {
+    const process = async x => typeof x === "function" ? x() : x;
+    const arrTasks = !Array.isArray(tasks) ? process(tasks) : Promise.all(tasks.map(process));
     try {
       const r = await Promise.race([arrTasks, this.defer.promise]);
       this.clear();
@@ -239,8 +240,10 @@ export function timeout<T>(
  * @param rejectMsg - message to reject with if operation timed out
  * @returns promise results from all tasks
  */
-export async function runTimeout<T>(tasks: Promise<T> | Promise<T>[], maxMs: number, rejectMsg?) {
-  return await timeout(maxMs, rejectMsg).run(tasks);
+export async function runTimeout<T>(tasks: Task<T>, maxMs: number, rejectMsg?: string): Promise<T>;
+export async function runTimeout<T extends readonly any[]>(tasks: Tasks<T>, maxMs: number, rejectMsg?: string): Promise<T>;
+export async function runTimeout<T>(tasks: Runnable<T>, maxMs: number, rejectMsg?: string): Promise<T> {
+  return await timeout<T>(maxMs, rejectMsg).run(tasks);
 }
 
 /**
