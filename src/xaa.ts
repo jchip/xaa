@@ -100,6 +100,8 @@ type ValueOrErrorHandler<T> = T extends Function ? never : T | Promise<T> | ((er
  * It can be an async function.
  * @returns `valOrFunc` or its returned value if it's a function.
  */
+export async function delay<T extends Function>(delayMs: number, valOrFunc: Producer<T>): Promise<T>;
+export async function delay<T = void>(delayMs: number, valOrFunc: ValueOrProducer<T>): Promise<T>;
 export async function delay<T = void>(delayMs: number, valOrFunc?: ValueOrProducer<T>): Promise<T> {
   await setTimeoutPromise(delayMs);
   return typeof valOrFunc === "function" ? /* lazily */ valOrFunc() : valOrFunc;
