@@ -79,9 +79,9 @@ export class TimeoutError extends Error {
   }
 }
 
-// Function cannot subsume T
-// otherwise xaa.delay(500, "foo") is indistinguishable from xaa.delay(500, () => "foo")
-// if T is `string | () => string`
+// It may be the case that Function cannot be assignable to T:
+// Implementation-wise, xaa.delay<() => string>(500, () => "foo") is unsound
+// since it returns Promise<string> at runtime, not Promise<() => string>.
 type ValueOrProducer<T> = T extends Function ? never : T | Promise<T> | Producer<T>;
 type ValueOrErrorHandler<T> = T extends Function ? never : T | Promise<T> | ((err?: Error) => T | Promise<T>);
 /**
