@@ -83,7 +83,7 @@ export class TimeoutError extends Error {
 // otherwise xaa.delay(500, "foo") is indistinguishable from xaa.delay(500, () => "foo")
 // if T is `string | () => string`
 type ValueOrProducer<T> = T extends Function ? never : T | Promise<T> | Producer<T>;
-type ValueOrErrorHandler<T> = T extends Function ? never : T | Promise<T> | ((err?: Error) => T);
+type ValueOrErrorHandler<T> = T extends Function ? never : T | Promise<T> | ((err?: Error) => T | Promise<T>);
 /**
  * delay some milliseconds and then return `valOrFunc`
  *
