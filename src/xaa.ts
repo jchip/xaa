@@ -1,16 +1,11 @@
 import * as assert from "assert";
+import { promisify } from "util";
 
 type Consumer<T> = (item: T, index?: number) => unknown;
 type Producer<T> = () => (T | Promise<T>);
-type Predicate<T> = (item: T, index?: number) => boolean;
-type ValueOrProducer<T> = T | Promise<T> | Producer<T>;
-type ValueOrErrorHandler<T> = T | Promise<T> | ((err?: Error) => T);
+type Predicate<T> = (item: T, index?: number) => boolean | Promise<boolean>;
 
-type Task<T> = Promise<T> | (() => Promise<T>);
-type Tasks<T extends readonly any[]> = {
-  [P in keyof T]: Task<T[P]>;
-};
-type Runnable<T> = T extends readonly any[] ? Tasks<T> : Task<T>;
+const setTimeoutPromise = promisify(setTimeout);
 
 /**
  * Defer object for fulfilling a promise later in other events
@@ -84,6 +79,11 @@ export class TimeoutError extends Error {
   }
 }
 
+// Function cannot subsume T
+// otherwise xaa.delay(500, "foo") is indistinguishable from xaa.delay(500, () => "foo")
+// if T is `string | () => string`
+type ValueOrProducer<T> = T extends Function ? never : T | Promise<T> | Producer<T>;
+type ValueOrErrorHandler<T> = T extends Function ? never : T | Promise<T> | ((err?: Error) => T);
 /**
  * delay some milliseconds and then return `valOrFunc`
  *
@@ -91,6 +91,8 @@ export class TimeoutError extends Error {
  *
  * ```js
  * await xaa.delay(500);
+ * await xaa.delay(500, "Result");
+ * await xaa.delay(500, () => "Result");
  * ```
  *
  * @param delayMs - number milliseconds to delay
@@ -98,23 +100,17 @@ export class TimeoutError extends Error {
  * It can be an async function.
  * @returns `valOrFunc` or its returned value if it's a function.
  */
-export async function delay<T>(delayMs: number, valOrFunc?: ValueOrProducer<T>): Promise<T> {
-  let handler: (resolve: any) => NodeJS.Timeout;
-
-  const c = valOrFunc && valOrFunc.constructor.name;
-
-  if (c === "AsyncFunction") {
-    handler = (resolve: (res: any) => any) =>
-      setTimeout(async () => resolve(await (valOrFunc as Function)()), delayMs);
-  } else if (c === "Function") {
-    handler = (resolve: (res: any) => any) => setTimeout(() => resolve((valOrFunc as Function)()), delayMs);
-  } else {
-    handler = (resolve: (res: any) => any) => setTimeout(() => resolve(valOrFunc), delayMs);
-  }
-
-  return new Promise(handler);
+export async function delay<T = void>(delayMs: number, valOrFunc?: ValueOrProducer<T>): Promise<T> {
+  await setTimeoutPromise(delayMs);
+  return typeof valOrFunc === "function" ? /* lazily */ valOrFunc() : valOrFunc;
 }
 
+
+type Task<T> = Promise<T> | (() => Promise<T>);
+type Tasks<T extends readonly any[]> = {
+  readonly [P in keyof T]: Task<T[P]>;
+};
+type Runnable<T> = T extends readonly any[] ? Tasks<T> : Task<T>;
 /**
  * TimeoutRunner for running tasks (promises) with a timeout
  *
@@ -154,9 +150,10 @@ export class TimeoutRunner<T> {
    * @param tasks - Promise or function that returns Promise, or array of them.
    * @returns Promise to wait for tasks to complete, or timeout error.
    */
-  async run(tasks: Runnable<T>) {
-    const process = async x => typeof x === "function" ? x() : x;
-    const arrTasks = !Array.isArray(tasks) ? process(tasks) : Promise.all(tasks.map(process));
+  async run<U extends Runnable<T>>(tasks: U): Promise<T | T[]> {
+    const process = async (x: Task<T>) => typeof x === "function" ? x() : x;
+    // Cast below is due in part to https://github.com/microsoft/TypeScript/issues/17002
+    const arrTasks = !Array.isArray(tasks) ? process(tasks as Task<T>) : Promise.all(tasks.map(process));
     try {
       const r = await Promise.race([arrTasks, this.defer.promise]);
       this.clear();
@@ -203,7 +200,7 @@ export class TimeoutRunner<T> {
   /** the error if running failed */
   error?: Error;
   /** the result from running tasks */
-  result?: T;
+  result?: T | T[];
 }
 
 /**
@@ -241,8 +238,8 @@ export function timeout<T>(
  * @returns promise results from all tasks
  */
 export async function runTimeout<T>(tasks: Task<T>, maxMs: number, rejectMsg?: string): Promise<T>;
-export async function runTimeout<T extends readonly any[]>(tasks: Tasks<T>, maxMs: number, rejectMsg?: string): Promise<T>;
-export async function runTimeout<T>(tasks: Runnable<T>, maxMs: number, rejectMsg?: string): Promise<T> {
+export async function runTimeout<T extends readonly any[]>(tasks: Tasks<T>, maxMs: number, rejectMsg?: string): Promise<T[]>;
+export async function runTimeout<T>(tasks: Runnable<T>, maxMs: number, rejectMsg?: string): Promise<T | T[]> {
   return await timeout<T>(maxMs, rejectMsg).run(tasks);
 }
 
@@ -251,7 +248,7 @@ export async function runTimeout<T>(tasks: Runnable<T>, maxMs: number, rejectMsg
  *
  * Contains a partial field for result mapped before error was encountered.
  */
-export class MapError<T> extends Error {
+export interface MapError<T> extends Error {
   /** the result that has been mapped before error was encountered */
   partial: T[];
 }
@@ -313,7 +310,7 @@ function multiMap<T, O>(array: readonly T[], func: MapFunction<T, O>, options: M
   const fail = (err: Error): void => {
     context.failed = true;
     if (!error) {
-      error = err as MapError<O>;
+      error = err as MapError<O>; // Safe because of the following line:
       error.partial = awaited;
       defer.reject(error);
     }
@@ -433,6 +430,8 @@ export async function each<T>(array: readonly T[], func: Consumer<T>) {
  * await xaa.filter([1, 2, 3], async val => await validateResult(val))
  * ```
  *
+ * Beware: concurrency is fixed to 1.
+ *
  * @param array array to filter
  * @param func callback for filter
  * @returns filtered result
@@ -458,19 +457,13 @@ export async function filter<T>(array: readonly T[], func: Predicate<T>) {
  * @param valOrFunc value, or callback to get value, to return if `func` throws
  * @returns awaited result, `valOrFunc`, or `await valOrFunc(err)`.
  */
-export async function tryCatch<T, TAlt>(func: () => T,
-  valOrFunc: ValueOrErrorHandler<TAlt>): Promise<T | TAlt> {
-    try {
-      const r = func();
-      return await r;
-    } catch (err) {
-      if (typeof valOrFunc === "function") {
-        const r = (valOrFunc as Function)(err);
-        return await r;
-      }
-
-      return valOrFunc;
-    }
+export async function tryCatch<T, TAlt>(
+    func: Producer<T>, valOrFunc: ValueOrErrorHandler<TAlt>): Promise<T | TAlt> {
+  try {
+    return await func();
+  } catch (err) {
+    return typeof valOrFunc === "function" ? valOrFunc(err) : valOrFunc;
+  }
 }
 
 export { tryCatch as try };
@@ -485,5 +478,5 @@ export { tryCatch as try };
  */
 export async function wrap<T, F extends (...args: any[]) => T>
     (func: F, ...args: Parameters<F>): Promise<T> {
-  return await func(...args);
+  return func(...args);
 }
