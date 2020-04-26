@@ -4,9 +4,9 @@
     "lib": [
       "es2018"
     ],
-    "module": "commonjs",
+    "module": "CommonJS",
     "esModuleInterop": false,
-    "target": "es2018",
+    "target": "ES2018",
     "preserveConstEnums": true,
     "sourceMap": true,
     "declaration": true,
@@ -16,8 +16,7 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "alwaysStrict": true,
-    "strictFunctionTypes": true,
-    "noImplicitAny": true,
+    "strictFunctionTypes": true
   },
   "include": [
     "src"
