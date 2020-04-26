@@ -1,6 +1,6 @@
 {
   "name": "xaa",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "async/await/Promise helpers - delay, defer, timeout, each, map, filter",
   "main": "dist/xaa.js",
   "types": "dist/xaa.d.ts",
