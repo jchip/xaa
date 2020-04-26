@@ -2,7 +2,7 @@ import * as assert from "assert";
 import { promisify } from "util";
 
 type Consumer<T> = (item: T, index?: number) => unknown;
-type Producer<T> = () => (T | Promise<T>);
+type Producer<T> = () => T | Promise<T>;
 type Predicate<T> = (item: T, index?: number) => boolean | Promise<boolean>;
 
 const setTimeoutPromise = promisify(setTimeout);
@@ -105,7 +105,6 @@ export async function delay<T = void>(delayMs: number, valOrFunc?: ValueOrProduc
   return typeof valOrFunc === "function" ? /* lazily */ valOrFunc() : valOrFunc;
 }
 
-
 type Task<T> = Promise<T> | (() => Promise<T>);
 type Tasks<T extends readonly any[]> = {
   readonly [P in keyof T]: Task<T[P]>;
@@ -151,9 +150,11 @@ export class TimeoutRunner<T> {
    * @returns Promise to wait for tasks to complete, or timeout error.
    */
   async run<U extends Runnable<T>>(tasks: U): Promise<T | T[]> {
-    const process = async (x: Task<T>) => typeof x === "function" ? x() : x;
+    const process = async (x: Task<T>) => (typeof x === "function" ? x() : x);
     // Cast below is due in part to https://github.com/microsoft/TypeScript/issues/17002
-    const arrTasks = !Array.isArray(tasks) ? process(tasks as Task<T>) : Promise.all(tasks.map(process));
+    const arrTasks = !Array.isArray(tasks)
+      ? process(tasks as Task<T>)
+      : Promise.all(tasks.map(process));
     try {
       const r = await Promise.race([arrTasks, this.defer.promise]);
       this.clear();
@@ -238,8 +239,16 @@ export function timeout<T>(
  * @returns promise results from all tasks
  */
 export async function runTimeout<T>(tasks: Task<T>, maxMs: number, rejectMsg?: string): Promise<T>;
-export async function runTimeout<T extends readonly any[]>(tasks: Tasks<T>, maxMs: number, rejectMsg?: string): Promise<T[]>;
-export async function runTimeout<T>(tasks: Runnable<T>, maxMs: number, rejectMsg?: string): Promise<T | T[]> {
+export async function runTimeout<T extends readonly any[]>(
+  tasks: Tasks<T>,
+  maxMs: number,
+  rejectMsg?: string
+): Promise<T[]>;
+export async function runTimeout<T>(
+  tasks: Runnable<T>,
+  maxMs: number,
+  rejectMsg?: string
+): Promise<T | T[]> {
   return await timeout<T>(maxMs, rejectMsg).run(tasks);
 }
 
@@ -295,7 +304,11 @@ export type MapFunction<T, O> = (value: T, index: number, context: MapContext<T>
  * @param options MapOptions
  * @returns promise with mapped result
  */
-function multiMap<T, O>(array: readonly T[], func: MapFunction<T, O>, options: MapOptions): Promise<O[]> {
+function multiMap<T, O>(
+  array: readonly T[],
+  func: MapFunction<T, O>,
+  options: MapOptions
+): Promise<O[]> {
   const awaited = new Array<O>(array.length);
 
   let error: MapError<O>;
@@ -458,7 +471,9 @@ export async function filter<T>(array: readonly T[], func: Predicate<T>) {
  * @returns awaited result, `valOrFunc`, or `await valOrFunc(err)`.
  */
 export async function tryCatch<T, TAlt>(
-    func: Producer<T>, valOrFunc: ValueOrErrorHandler<TAlt>): Promise<T | TAlt> {
+  func: Producer<T>,
+  valOrFunc: ValueOrErrorHandler<TAlt>
+): Promise<T | TAlt> {
   try {
     return await func();
   } catch (err) {
@@ -476,7 +491,9 @@ export { tryCatch as try };
  * @param args arguments to pass to `func`
  * @returns result from `func`
  */
-export async function wrap<T, F extends (...args: any[]) => T>
-    (func: F, ...args: Parameters<F>): Promise<T> {
+export async function wrap<T, F extends (...args: any[]) => T>(
+  func: F,
+  ...args: Parameters<F>
+): Promise<T> {
   return func(...args);
 }

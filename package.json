@@ -45,7 +45,7 @@
     "eslint-config-walmart": "^2.2.1",
     "eslint-plugin-filenames": "^1.1.0",
     "eslint-plugin-jsdoc": "^21.0.0",
-    "prettier": "^1.19.1",
+    "prettier": "^2.0.5",
     "run-verify": "^1.2.1",
     "source-map-support": "^0.5.16",
     "ts-node": "^8.6.2",
