@@ -2,11 +2,19 @@
 
 async/await and Promise helpers.
 
+<https://github.com/jchip/xaa>
+
 ## Install and Usage
 
 ```
 npm i xaa
 ```
+
+## APIs
+
+API references can be found [here](https://jchip.github.io/xaa/modules/index.html)
+
+Or just use your IDE for hint if it supports TypeScript and typedoc.
 
 ## Examples:
 
@@ -24,9 +32,9 @@ async function test() {
       () => xaa.delay(10, 1),
       () => xaa.delay(15, 2),
       "some value",
-      Promise.resolve("more value")
+      Promise.resolve("more value"),
     ])
-    .then(results => {
+    .then((results) => {
       // results === [1, 2, "some value", "more value"]
     });
 }
@@ -46,4 +54,8 @@ async function test() {
 }
 ```
 
----
+# License
+
+Licensed under the [Apache License, Version 2.0].
+
+[apache license, version 2.0]: https://www.apache.org/licenses/LICENSE-2.0

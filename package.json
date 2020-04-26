@@ -11,6 +11,7 @@
     "prepublishOnly": "clap -n build docs && clap check",
     "docs": "clap xarc/docs && touch docs/.nojekyll"
   },
+  "homepage": "https://jchip.github.io/xaa/",
   "repository": {
     "type": "git",
     "url": "https://github.com/jchip/xaa.git"
