@@ -6,11 +6,10 @@
   "types": "dist/xaa.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "clap -n -x compile test-only",
-    "coverage": "clap -n -x compile check",
-    "compile": "tsc",
+    "test": "clap test-only",
+    "coverage": "clap check",
     "prepublishOnly": "clap -n build docs && clap check",
-    "docs": "typedoc --excludeNotExported --out docs src"
+    "docs": "clap xarc/docs && touch docs/.nojekyll"
   },
   "repository": {
     "type": "git",
@@ -59,6 +58,7 @@
     "source-map-support": "^0.5.16",
     "ts-node": "^8.6.2",
     "typedoc": "^0.17.4",
+    "typedoc-plugin-external-module-name": "^3.0.0",
     "typescript": "^3.8.3"
   },
   "nyc": {

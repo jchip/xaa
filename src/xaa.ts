@@ -1,3 +1,8 @@
+/**
+ * @packageDocumentation
+ * @module index
+ */
+
 import * as assert from "assert";
 import { promisify } from "util";
 
