@@ -132,10 +132,10 @@
 				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module tsd-has-type-parameter">
 					<a name="mapcontext" class="tsd-anchor"></a>
 					<h3>Map<wbr>Context</h3>
-					<div class="tsd-signature tsd-kind-icon">Map<wbr>Context&lt;T&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>array<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>failed<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> }</span></div>
+					<div class="tsd-signature tsd-kind-icon">Map<wbr>Context&lt;T&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>array<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>assertNoFailure<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">; </span>failed<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> }</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L281">src/xaa.ts:281</a></li>
+							<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L288">src/xaa.ts:288</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -161,6 +161,27 @@
 								</div>
 							</li>
 							<li class="tsd-parameter">
+								<h5>assert<wbr>NoFailure<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<div class="lead">
+										<p>During concurrent map, if any mapper failed, this allow other inflight
+										map functions to assert that no failure has occurred, else stop.</p>
+									</div>
+								</div>
+								<ul class="tsd-parameters">
+									<li class="tsd-parameter-signature">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-variable">
+											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+										</ul>
+										<ul class="tsd-descriptions">
+											<li class="tsd-description">
+												<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li class="tsd-parameter">
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> failed<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<div class="lead">
@@ -179,7 +200,7 @@
 					<div class="tsd-signature tsd-kind-icon">Map<wbr>Function&lt;T, O&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span>, index<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, context<span class="tsd-signature-symbol">: </span><a href="index.html#mapcontext" class="tsd-signature-type">MapContext</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">O</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">O</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L302">src/xaa.ts:302</a></li>
+							<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L314">src/xaa.ts:314</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -244,7 +265,7 @@
 					<div class="tsd-signature tsd-kind-icon">Map<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>concurrency<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>thisArg<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> }</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L273">src/xaa.ts:273</a></li>
+							<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L280">src/xaa.ts:280</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -288,7 +309,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L108">src/xaa.ts:108</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L112">src/xaa.ts:112</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -328,7 +349,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L109">src/xaa.ts:109</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L116">src/xaa.ts:116</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -360,7 +381,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L438">src/xaa.ts:438</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L467">src/xaa.ts:467</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -408,7 +429,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L459">src/xaa.ts:459</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L488">src/xaa.ts:488</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -455,7 +476,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L70">src/xaa.ts:70</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L72">src/xaa.ts:72</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -499,7 +520,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L396">src/xaa.ts:396</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L424">src/xaa.ts:424</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -556,7 +577,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L248">src/xaa.ts:248</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L255">src/xaa.ts:255</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -597,7 +618,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L249">src/xaa.ts:249</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L256">src/xaa.ts:256</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -632,7 +653,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L233">src/xaa.ts:233</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L240">src/xaa.ts:240</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -680,7 +701,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L480">src/xaa.ts:480</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L509">src/xaa.ts:509</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -730,7 +751,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/0d6a9395/src/xaa.ts#L501">src/xaa.ts:501</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L530">src/xaa.ts:530</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
