@@ -3,8 +3,8 @@
 const xaa = require("../../src/xaa");
 const { asyncVerify, expectError } = require("run-verify");
 
-describe("xaa", function() {
-  describe("delay", function() {
+describe("xaa", function () {
+  describe("delay", function () {
     it("should wait ms", async () => {
       const a = Date.now();
       const x = await xaa.delay(20);
@@ -27,7 +27,7 @@ describe("xaa", function() {
     });
   });
 
-  describe("defer", function() {
+  describe("defer", function () {
     it("should return defer object that can resolve", () => {
       const defer = new xaa.Defer();
       setTimeout(() => defer.resolve("hello"), 100);
@@ -61,7 +61,7 @@ describe("xaa", function() {
     });
   });
 
-  describe("timeout", function() {
+  describe("timeout", function () {
     it("should timeout run", () => {
       let too;
       return asyncVerify(
@@ -202,7 +202,7 @@ describe("xaa", function() {
     });
   });
 
-  describe("each", function() {
+  describe("each", function () {
     it("should call for each element in series", async () => {
       let last = 0;
       await xaa.each([1, 2, 3, 4, 5], v => {
@@ -213,7 +213,7 @@ describe("xaa", function() {
     });
   });
 
-  describe("map", function() {
+  describe("map", function () {
     it("should map empty array", () => {
       return xaa.map([]).then(r => {
         expect(r).deep.equal([]);
@@ -451,9 +451,67 @@ describe("xaa", function() {
     it("should allow inflight map ops to observe that error occurred", async () => {
       return testInflight(true, 0);
     });
+
+    it("should allow map to use assertNoFailure to stop", async () => {
+      let callCount = 0;
+      let finishCount = 0;
+      return asyncVerify(
+        expectError(() => {
+          return xaa.map(
+            [1, 2, 3, 4, 5, 6],
+            async (v, ix, context) => {
+              callCount++;
+              if (v === 3) {
+                await xaa.delay(1);
+                throw new Error("oops");
+              }
+              await xaa.delay(10);
+
+              context.assertNoFailure();
+
+              finishCount++;
+            },
+            { concurrency: 2 }
+          );
+        }),
+        () => xaa.delay(20),
+        () => {
+          expect(callCount).equal(4);
+          expect(finishCount).equal(2);
+        }
+      );
+    });
+
+    it("should handle error thrown from non async function", async () => {
+      let callCount = 0;
+      let finishCount = 0;
+      return asyncVerify(
+        expectError(() => {
+          return xaa.map(
+            [1, 2, 3, 4, 5, 6],
+            (v, ix, context) => {
+              callCount++;
+              if (v === 4) {
+                throw new Error("oops");
+              }
+              return xaa.delay(10).then(() => {
+                context.assertNoFailure();
+                finishCount++;
+              });
+            },
+            { concurrency: 6 }
+          );
+        }),
+        () => xaa.delay(20),
+        () => {
+          expect(callCount).equal(4);
+          expect(finishCount).equal(0);
+        }
+      );
+    });
   });
 
-  describe("filter", function() {
+  describe("filter", function () {
     it("should filter sync", async () => {
       const x = await xaa.filter([1, 2, 3, 4, 5, 6], v => v % 2 === 0);
       expect(x).to.deep.equal([2, 4, 6]);
@@ -465,7 +523,7 @@ describe("xaa", function() {
     });
   });
 
-  describe("tryCatch", function() {
+  describe("tryCatch", function () {
     it("should return if there's no error", async () => {
       const x = await xaa.tryCatch(() => Promise.resolve("hello"));
       expect(x).to.equal("hello");
@@ -505,7 +563,7 @@ describe("xaa", function() {
     });
   });
 
-  describe("wrap", function() {
+  describe("wrap", function () {
     it("should wrap direct throws into async", () => {
       let error;
       return xaa

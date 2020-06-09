@@ -3,6 +3,8 @@
  * @module index
  */
 
+/* eslint-disable max-statements */
+
 import * as assert from "assert";
 import { promisify } from "util";
 
@@ -88,7 +90,9 @@ export class TimeoutError extends Error {
 // Implementation-wise, xaa.delay<() => string>(500, () => "foo") is unsound
 // since it returns Promise<string> at runtime, not Promise<() => string>.
 type ValueOrProducer<T> = T extends Function ? never : T | Promise<T> | Producer<T>;
-type ValueOrErrorHandler<T> = T extends Function ? never : T | Promise<T> | ((err?: Error) => T | Promise<T>);
+type ValueOrErrorHandler<T> = T extends Function
+  ? never
+  : T | Promise<T> | ((err?: Error) => T | Promise<T>);
 /**
  * delay some milliseconds and then return `valOrFunc`
  *
@@ -105,7 +109,10 @@ type ValueOrErrorHandler<T> = T extends Function ? never : T | Promise<T> | ((er
  * It can be an async function.
  * @returns `valOrFunc` or its returned value if it's a function.
  */
-export async function delay<T extends Function>(delayMs: number, valOrFunc: Producer<T>): Promise<T>;
+export async function delay<T extends Function>(
+  delayMs: number,
+  valOrFunc: Producer<T>
+): Promise<T>;
 export async function delay<T = void>(delayMs: number, valOrFunc: ValueOrProducer<T>): Promise<T>;
 export async function delay<T = void>(delayMs: number, valOrFunc?: ValueOrProducer<T>): Promise<T> {
   await setTimeoutPromise(delayMs);
@@ -289,6 +296,11 @@ export type MapContext<T> = {
    * the original array that's passed to xaa.map
    */
   array: readonly T[];
+  /**
+   * During concurrent map, if any mapper failed, this allow other inflight
+   * map functions to assert that no failure has occurred, else stop.
+   */
+  assertNoFailure: () => void;
 };
 
 /**
@@ -301,6 +313,23 @@ export type MapContext<T> = {
  */
 export type MapFunction<T, O> = (value: T, index: number, context: MapContext<T>) => O | Promise<O>;
 
+/**
+ * create map context
+ *
+ * @param array - array to map
+ * @returns map context
+ */
+function createMapContext<T>(array: readonly T[]): MapContext<T> {
+  return {
+    array,
+    failed: false,
+    assertNoFailure() {
+      if (this.failed) {
+        throw new Error("assertNoFailure");
+      }
+    }
+  };
+}
 /**
  * async map for array that supports concurrency
  *
@@ -323,7 +352,7 @@ function multiMap<T, O>(
   let freeSlots = options.concurrency;
   let index = 0;
 
-  const context: MapContext<T> = { array };
+  const context = createMapContext(array);
 
   const defer = makeDefer<O[]>();
 
@@ -336,16 +365,15 @@ function multiMap<T, O>(
     }
   };
 
-  const mapNext = (): void => {
+  const mapNext = (): any => {
     // important to check this here, so an empty input array immediately
     // gets resolved with an empty result.
     if (!error && completedCount === array.length) {
-      defer.resolve(awaited);
-      return;
+      return defer.resolve(awaited);
     }
 
     if (error || freeSlots <= 0 || index >= array.length) {
-      return;
+      return null;
     }
 
     freeSlots--;
@@ -362,12 +390,12 @@ function multiMap<T, O>(
       const res = func.call(options.thisArg, array[pendingIx], pendingIx, context);
       if (res && res.then) {
         res.then(save, fail);
-        mapNext();
+        return mapNext();
       } else {
-        save(res);
+        return save(res);
       }
     } catch (err) {
-      fail(err);
+      return fail(err);
     }
   };
 
@@ -407,18 +435,19 @@ export async function map<T, O>(
   } else {
     const awaited = new Array<O>(array.length);
 
-    const context: MapContext<T> = { array, failed: false };
+    const context = createMapContext(array);
 
-    try {
-      for (let i = 0; i < array.length; i++) {
+    for (let i = 0; i < array.length; i++) {
+      try {
         awaited[i] = await func.call(options.thisArg, array[i], i, context);
+      } catch (err) {
+        context.failed = true;
+        (err as MapError<O>).partial = awaited;
+        throw err;
       }
-
-      return awaited;
-    } catch (err) {
-      (err as MapError<O>).partial = awaited;
-      throw err;
     }
+
+    return awaited;
   }
 }
 

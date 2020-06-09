@@ -89,7 +89,9 @@
     "cache": false
   },
   "prettier": {
-    "printWidth": 100
+    "printWidth": 100,
+    "trailingComma": "none",
+    "arrowParens": "avoid"
   },
   "mocha": {
     "require": [
