@@ -7,6 +7,7 @@
 	<meta name="description" content="Documentation for xaa">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
 </head>
 <body>
 <header>
@@ -51,13 +52,10 @@
 		<div class="container">
 			<ul class="tsd-breadcrumb">
 				<li>
-					<a href="../globals.html">Globals</a>
+					<a href="../modules.html">xaa</a>
 				</li>
 				<li>
-					<a href="../modules/index.html">index</a>
-				</li>
-				<li>
-					<a href="index.defer-1.html">Defer</a>
+					<a href="defer.html">Defer</a>
 				</li>
 			</ul>
 			<h1>Class Defer&lt;T&gt;</h1>
@@ -98,21 +96,21 @@
 						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="index.defer-1.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-has-type-parameter"><a href="defer.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="index.defer-1.html#promise" class="tsd-kind-icon">promise</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="index.defer-1.html#reject" class="tsd-kind-icon">reject</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="index.defer-1.html#resolve" class="tsd-kind-icon">resolve</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="defer.html#promise" class="tsd-kind-icon">promise</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="defer.html#reject" class="tsd-kind-icon">reject</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="defer.html#resolve" class="tsd-kind-icon">resolve</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.defer-1.html#done" class="tsd-kind-icon">done</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="defer.html#done" class="tsd-kind-icon">done</a></li>
 							</ul>
 						</section>
 					</div>
@@ -120,17 +118,17 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Constructors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-has-type-parameter">
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
-					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Defer<span class="tsd-signature-symbol">(</span>Promise<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">PromiseConstructor</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="index.defer-1.html" class="tsd-signature-type">Defer</a></li>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-has-type-parameter">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Defer&lt;T&gt;<span class="tsd-signature-symbol">(</span>ThePromise<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">PromiseConstructor</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="defer.html" class="tsd-signature-type" data-tsd-kind="Class">Defer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L23">src/xaa.ts:23</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/a32d5c12/src/xaa.ts#L23">src/xaa.ts:23</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -138,18 +136,22 @@
 									<p>construct Defer</p>
 								</div>
 							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>T</h4>
+								</li>
+							</ul>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> Promise: <span class="tsd-signature-type">PromiseConstructor</span><span class="tsd-signature-symbol"> = global.Promise</span></h5>
+									<h5>ThePromise: <span class="tsd-signature-type">PromiseConstructor</span><span class="tsd-signature-symbol"> = ...</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>optional promise constructor</p>
-										</div>
+										<p>optional promise constructor</p>
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="index.defer-1.html" class="tsd-signature-type">Defer</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="defer.html" class="tsd-signature-type" data-tsd-kind="Class">Defer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -162,7 +164,7 @@
 					<div class="tsd-signature tsd-kind-icon">promise<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L36">src/xaa.ts:36</a></li>
+							<li>Defined in <a href="https://github.com/jchip/xaa/blob/a32d5c12/src/xaa.ts#L36">src/xaa.ts:36</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -177,7 +179,7 @@
 					<div class="tsd-signature tsd-kind-icon">reject<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>reason<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L40">src/xaa.ts:40</a></li>
+							<li>Defined in <a href="https://github.com/jchip/xaa/blob/a32d5c12/src/xaa.ts#L40">src/xaa.ts:40</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -189,7 +191,7 @@
 						<h4>Type declaration</h4>
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter-signature">
-								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-class">
 									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>reason<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 								</ul>
 								<ul class="tsd-descriptions">
@@ -213,7 +215,7 @@
 					<div class="tsd-signature tsd-kind-icon">resolve<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>result<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L38">src/xaa.ts:38</a></li>
+							<li>Defined in <a href="https://github.com/jchip/xaa/blob/a32d5c12/src/xaa.ts#L38">src/xaa.ts:38</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -225,7 +227,7 @@
 						<h4>Type declaration</h4>
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter-signature">
-								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-class">
 									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>result<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 								</ul>
 								<ul class="tsd-descriptions">
@@ -250,13 +252,13 @@
 					<a name="done" class="tsd-anchor"></a>
 					<h3>done</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">done<span class="tsd-signature-symbol">(</span>err<span class="tsd-signature-symbol">: </span><a href="index.timeouterror.html#error" class="tsd-signature-type">Error</a>, <span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">done<span class="tsd-signature-symbol">(</span>err<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Error</span>, <span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/jchip/xaa/blob/6f05d54a/src/xaa.ts#L47">src/xaa.ts:47</a></li>
+									<li>Defined in <a href="https://github.com/jchip/xaa/blob/a32d5c12/src/xaa.ts#L48">src/xaa.ts:48</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -267,7 +269,7 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>err: <a href="index.timeouterror.html#error" class="tsd-signature-type">Error</a></h5>
+									<h5>err: <span class="tsd-signature-type">Error</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>error</p>
 									</div>
@@ -280,6 +282,7 @@
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+							<p>nothing</p>
 						</li>
 					</ul>
 				</section>
@@ -288,90 +291,87 @@
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 			<nav class="tsd-navigation primary">
 				<ul>
-					<li class="globals  ">
-						<a href="../globals.html"><em>Globals</em></a>
-					</li>
-					<li class="current tsd-kind-module">
-						<a href="../modules/index.html">index</a>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-reference tsd-parent-kind-module">
-						<a href="../modules/index.html#defer" class="tsd-kind-icon">defer</a>
+					<li class=" tsd-kind-reference">
+						<a href="../modules.html#defer" class="tsd-kind-icon">defer</a>
 					</li>
-					<li class=" tsd-kind-reference tsd-parent-kind-module">
-						<a href="../modules/index.html#try" class="tsd-kind-icon">try</a>
+					<li class=" tsd-kind-reference">
+						<a href="../modules.html#try" class="tsd-kind-icon">try</a>
 					</li>
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="index.defer-1.html" class="tsd-kind-icon">Defer</a>
+					<li class="current tsd-kind-class tsd-has-type-parameter">
+						<a href="defer.html" class="tsd-kind-icon">Defer</a>
 						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="index.defer-1.html#constructor" class="tsd-kind-icon">constructor</a>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-has-type-parameter">
+								<a href="defer.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="index.defer-1.html#promise" class="tsd-kind-icon">promise</a>
+								<a href="defer.html#promise" class="tsd-kind-icon">promise</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="index.defer-1.html#reject" class="tsd-kind-icon">reject</a>
+								<a href="defer.html#reject" class="tsd-kind-icon">reject</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="index.defer-1.html#resolve" class="tsd-kind-icon">resolve</a>
+								<a href="defer.html#resolve" class="tsd-kind-icon">resolve</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="index.defer-1.html#done" class="tsd-kind-icon">done</a>
+								<a href="defer.html#done" class="tsd-kind-icon">done</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="index.timeouterror.html" class="tsd-kind-icon">Timeout<wbr>Error</a>
+					<li class=" tsd-kind-class">
+						<a href="timeouterror.html" class="tsd-kind-icon">Timeout<wbr>Error</a>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="index.timeoutrunner.html" class="tsd-kind-icon">Timeout<wbr>Runner</a>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="timeoutrunner.html" class="tsd-kind-icon">Timeout<wbr>Runner</a>
 					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../interfaces/index.maperror.html" class="tsd-kind-icon">Map<wbr>Error</a>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="../interfaces/maperror.html" class="tsd-kind-icon">Map<wbr>Error</a>
 					</li>
-					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#mapcontext" class="tsd-kind-icon">Map<wbr>Context</a>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="../modules.html#mapcontext" class="tsd-kind-icon">Map<wbr>Context</a>
 					</li>
-					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#mapfunction" class="tsd-kind-icon">Map<wbr>Function</a>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="../modules.html#mapfunction" class="tsd-kind-icon">Map<wbr>Function</a>
 					</li>
-					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
-						<a href="../modules/index.html#mapoptions" class="tsd-kind-icon">Map<wbr>Options</a>
+					<li class=" tsd-kind-type-alias">
+						<a href="../modules.html#mapoptions" class="tsd-kind-icon">Map<wbr>Options</a>
 					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#delay" class="tsd-kind-icon">delay</a>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="../modules.html#delay" class="tsd-kind-icon">delay</a>
 					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#each" class="tsd-kind-icon">each</a>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="../modules.html#each" class="tsd-kind-icon">each</a>
 					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#filter" class="tsd-kind-icon">filter</a>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="../modules.html#filter" class="tsd-kind-icon">filter</a>
 					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#makedefer" class="tsd-kind-icon">make<wbr>Defer</a>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="../modules.html#makedefer" class="tsd-kind-icon">make<wbr>Defer</a>
 					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#map" class="tsd-kind-icon">map</a>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="../modules.html#map" class="tsd-kind-icon">map</a>
 					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#runtimeout" class="tsd-kind-icon">run<wbr>Timeout</a>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="../modules.html#runtimeout" class="tsd-kind-icon">run<wbr>Timeout</a>
 					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#timeout" class="tsd-kind-icon">timeout</a>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="../modules.html#timeout" class="tsd-kind-icon">timeout</a>
 					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#trycatch" class="tsd-kind-icon">try<wbr>Catch</a>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="../modules.html#trycatch" class="tsd-kind-icon">try<wbr>Catch</a>
 					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/index.html#wrap" class="tsd-kind-icon">wrap</a>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="../modules.html#wrap" class="tsd-kind-icon">wrap</a>
 					</li>
 				</ul>
 			</nav>
@@ -383,19 +383,15 @@
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
 				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
 			</ul>
 			<ul class="tsd-legend">
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
 			</ul>
 		</div>
 	</div>
@@ -405,6 +401,5 @@
 </div>
 <div class="overlay"></div>
 <script src="../assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>

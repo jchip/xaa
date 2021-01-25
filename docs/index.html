@@ -7,6 +7,7 @@
 	<meta name="description" content="Documentation for xaa">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
 </head>
 <body>
 <header>
@@ -49,12 +50,7 @@
 	</div>
 	<div class="tsd-page-title">
 		<div class="container">
-			<ul class="tsd-breadcrumb">
-				<li>
-					<a href="globals.html">Globals</a>
-				</li>
-			</ul>
-			<h1>xaa</h1>
+			<h1>Project xaa</h1>
 		</div>
 	</div>
 </header>
@@ -70,7 +66,8 @@
 				<a href="#install-and-usage" id="install-and-usage" style="color: inherit; text-decoration: none;">
 					<h2>Install and Usage</h2>
 				</a>
-				<pre><code><span class="hljs-built_in">npm</span> i xaa</code></pre>
+				<pre><code><span style="color: #001080">npm</span><span style="color: #000000"> </span><span style="color: #001080">i</span><span style="color: #000000"> </span><span style="color: #001080">xaa</span>
+</code></pre>
 				<a href="#apis" id="apis" style="color: inherit; text-decoration: none;">
 					<h2>APIs</h2>
 				</a>
@@ -82,35 +79,37 @@
 				<a href="#xaatimeout" id="xaatimeout" style="color: inherit; text-decoration: none;">
 					<h3>xaa.timeout</h3>
 				</a>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { timeout } <span class="hljs-keyword">from</span> <span class="hljs-string">"xaa"</span>;
+				<pre><code class="language-js"><span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">timeout</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;xaa&quot;</span><span style="color: #000000">;</span>
 
-<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">test</span>(<span class="hljs-params"></span>) </span>{
-  <span class="hljs-comment">// will throw TimeoutError</span>
-  <span class="hljs-keyword">await</span> timeout(<span class="hljs-number">50</span>, <span class="hljs-string">"took too long"</span>).run(xaa.delay(<span class="hljs-number">100</span>));
-  <span class="hljs-comment">// will run the two functions and wait for them</span>
-  <span class="hljs-keyword">await</span> timeout(<span class="hljs-number">50</span>, <span class="hljs-string">"oops"</span>)
-    .run([
-      <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> xaa.delay(<span class="hljs-number">10</span>, <span class="hljs-number">1</span>),
-      () =&gt; xaa.delay(<span class="hljs-number">15</span>, <span class="hljs-number">2</span>),
-      <span class="hljs-string">"some value"</span>,
-      <span class="hljs-built_in">Promise</span>.resolve(<span class="hljs-string">"more value"</span>),
-    ])
-    .then(<span class="hljs-function">(<span class="hljs-params">results</span>) =&gt;</span> {
-      <span class="hljs-comment">// results === [1, 2, "some value", "more value"]</span>
-    });
-}</code></pre>
+<span style="color: #0000FF">async</span><span style="color: #000000"> </span><span style="color: #0000FF">function</span><span style="color: #000000"> </span><span style="color: #795E26">test</span><span style="color: #000000">() {</span>
+<span style="color: #000000">  </span><span style="color: #008000">// will throw TimeoutError</span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #795E26">timeout</span><span style="color: #000000">(</span><span style="color: #098658">50</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;took too long&quot;</span><span style="color: #000000">).</span><span style="color: #795E26">run</span><span style="color: #000000">(</span><span style="color: #001080">xaa</span><span style="color: #000000">.</span><span style="color: #795E26">delay</span><span style="color: #000000">(</span><span style="color: #098658">100</span><span style="color: #000000">));</span>
+<span style="color: #000000">  </span><span style="color: #008000">// will run the two functions and wait for them</span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #795E26">timeout</span><span style="color: #000000">(</span><span style="color: #098658">50</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;oops&quot;</span><span style="color: #000000">)</span>
+<span style="color: #000000">    .</span><span style="color: #795E26">run</span><span style="color: #000000">([</span>
+<span style="color: #000000">      () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">xaa</span><span style="color: #000000">.</span><span style="color: #795E26">delay</span><span style="color: #000000">(</span><span style="color: #098658">10</span><span style="color: #000000">, </span><span style="color: #098658">1</span><span style="color: #000000">),</span>
+<span style="color: #000000">      () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">xaa</span><span style="color: #000000">.</span><span style="color: #795E26">delay</span><span style="color: #000000">(</span><span style="color: #098658">15</span><span style="color: #000000">, </span><span style="color: #098658">2</span><span style="color: #000000">),</span>
+<span style="color: #000000">      </span><span style="color: #A31515">&quot;some value&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">      </span><span style="color: #267F99">Promise</span><span style="color: #000000">.</span><span style="color: #795E26">resolve</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;more value&quot;</span><span style="color: #000000">),</span>
+<span style="color: #000000">    ])</span>
+<span style="color: #000000">    .</span><span style="color: #795E26">then</span><span style="color: #000000">((</span><span style="color: #001080">results</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">      </span><span style="color: #008000">// results === [1, 2, &quot;some value&quot;, &quot;more value&quot;]</span>
+<span style="color: #000000">    });</span>
+<span style="color: #000000">}</span>
+</code></pre>
 				<a href="#xaamap" id="xaamap" style="color: inherit; text-decoration: none;">
 					<h3>xaa.map</h3>
 				</a>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { map } <span class="hljs-keyword">from</span> xaa;
+				<pre><code class="language-js"><span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">map</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #001080">xaa</span><span style="color: #000000">;</span>
 
-<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">test</span>(<span class="hljs-params"></span>) </span>{
-  <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> map(
-    [<span class="hljs-string">"http://url1"</span>, <span class="hljs-string">"http://url2"</span>],
-    <span class="hljs-keyword">async</span> url =&gt; fetch(url),
-    { <span class="hljs-attr">concurrency</span>: <span class="hljs-number">2</span> }
-  );
-}</code></pre>
+<span style="color: #0000FF">async</span><span style="color: #000000"> </span><span style="color: #0000FF">function</span><span style="color: #000000"> </span><span style="color: #795E26">test</span><span style="color: #000000">() {</span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">return</span><span style="color: #000000"> </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #795E26">map</span><span style="color: #000000">(</span>
+<span style="color: #000000">    [</span><span style="color: #A31515">&quot;http://url1&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;http://url2&quot;</span><span style="color: #000000">],</span>
+<span style="color: #000000">    </span><span style="color: #0000FF">async</span><span style="color: #000000"> </span><span style="color: #001080">url</span><span style="color: #000000"> </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #795E26">fetch</span><span style="color: #000000">(</span><span style="color: #001080">url</span><span style="color: #000000">),</span>
+<span style="color: #000000">    { </span><span style="color: #001080">concurrency:</span><span style="color: #000000"> </span><span style="color: #098658">2</span><span style="color: #000000"> }</span>
+<span style="color: #000000">  );</span>
+<span style="color: #000000">}</span>
+</code></pre>
 				<a href="#license" id="license" style="color: inherit; text-decoration: none;">
 					<h1>License</h1>
 				</a>
@@ -120,16 +119,67 @@
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 			<nav class="tsd-navigation primary">
 				<ul>
-					<li class="globals  ">
-						<a href="globals.html"><em>Globals</em></a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="modules/index.html">index</a>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
+					<li class=" tsd-kind-reference">
+						<a href="modules.html#defer" class="tsd-kind-icon">defer</a>
+					</li>
+					<li class=" tsd-kind-reference">
+						<a href="modules.html#try" class="tsd-kind-icon">try</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/defer.html" class="tsd-kind-icon">Defer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/timeouterror.html" class="tsd-kind-icon">Timeout<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/timeoutrunner.html" class="tsd-kind-icon">Timeout<wbr>Runner</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/maperror.html" class="tsd-kind-icon">Map<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="modules.html#mapcontext" class="tsd-kind-icon">Map<wbr>Context</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="modules.html#mapfunction" class="tsd-kind-icon">Map<wbr>Function</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#mapoptions" class="tsd-kind-icon">Map<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="modules.html#delay" class="tsd-kind-icon">delay</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="modules.html#each" class="tsd-kind-icon">each</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="modules.html#filter" class="tsd-kind-icon">filter</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="modules.html#makedefer" class="tsd-kind-icon">make<wbr>Defer</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="modules.html#map" class="tsd-kind-icon">map</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="modules.html#runtimeout" class="tsd-kind-icon">run<wbr>Timeout</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="modules.html#timeout" class="tsd-kind-icon">timeout</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="modules.html#trycatch" class="tsd-kind-icon">try<wbr>Catch</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="modules.html#wrap" class="tsd-kind-icon">wrap</a>
+					</li>
 				</ul>
 			</nav>
 		</div>
@@ -140,16 +190,15 @@
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
 			</ul>
 			<ul class="tsd-legend">
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
 			</ul>
 		</div>
 	</div>
@@ -159,6 +208,5 @@
 </div>
 <div class="overlay"></div>
 <script src="assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>
