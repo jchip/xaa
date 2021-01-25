@@ -1,4 +1,7 @@
+/* eslint-disable */
+
 "use strict";
+
 
 const xaa = require("../../src/xaa");
 const { asyncVerify, expectError } = require("run-verify");

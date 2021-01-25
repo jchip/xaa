@@ -3,7 +3,7 @@
  * @module index
  */
 
-/* eslint-disable max-statements */
+/* eslint-disable max-statements, @typescript-eslint/ban-types */
 
 import assert from "assert";
 import { promisify } from "util";
@@ -24,10 +24,10 @@ export class Defer<T> {
   /**
    * construct Defer
    *
-   * @param Promise optional promise constructor
+   * @param ThePromise optional promise constructor
    */
-  constructor(Promise: PromiseConstructor = global.Promise) {
-    this.promise = new Promise((resolve, reject) => {
+  constructor(ThePromise: PromiseConstructor = global.Promise) {
+    this.promise = new ThePromise((resolve, reject) => {
       this.resolve = resolve;
       this.reject = reject;
     });
@@ -43,6 +43,7 @@ export class Defer<T> {
    *
    * @param err - error
    * @param args - result
+   * @returns nothing
    */
   done(err: Error, ...args: any[]) {
     // Not declaring (err, result) explicitly for standard node.js callback.
@@ -529,7 +530,7 @@ export { tryCatch as try };
  */
 export async function wrap<T, F extends (...args: any[]) => T>(
   func: F,
-  ...args: Parameters<F>
+  ...args2: Parameters<F>
 ): Promise<T> {
-  return func(...args);
+  return func(...args2);
 }
