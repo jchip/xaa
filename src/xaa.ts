@@ -5,7 +5,7 @@
 
 /* eslint-disable max-statements */
 
-import * as assert from "assert";
+import assert from "assert";
 import { promisify } from "util";
 
 type Consumer<T> = (item: T, index?: number) => unknown;
@@ -111,7 +111,7 @@ type ValueOrErrorHandler<T> = T extends Function
  */
 export async function delay<T extends Function>(
   delayMs: number,
-  valOrFunc: Producer<T>
+  valOrFunc?: Producer<T>
 ): Promise<T>;
 export async function delay<T = void>(delayMs: number, valOrFunc: ValueOrProducer<T>): Promise<T>;
 export async function delay<T = void>(delayMs: number, valOrFunc?: ValueOrProducer<T>): Promise<T> {
