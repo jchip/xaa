@@ -509,7 +509,7 @@ export async function filter<T>(array: readonly T[], func: Predicate<T>) {
  */
 export async function tryCatch<T, TAlt>(
   func: Producer<T>,
-  valOrFunc: ValueOrErrorHandler<TAlt>
+  valOrFunc?: ValueOrErrorHandler<TAlt>
 ): Promise<T | TAlt> {
   try {
     return await func();
