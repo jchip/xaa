@@ -11,13 +11,16 @@
     "sourceMap": true,
     "declaration": true,
     "types": [
-      "node"
+      "node",
+      "mocha",
+      "chai",
+      "sinon",
+      "sinon-chai"
     ],
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "alwaysStrict": true,
-    "strictFunctionTypes": true,
-    "importHelpers": true
+    "strictFunctionTypes": true
   },
   "include": [
     "src"

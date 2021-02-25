@@ -396,10 +396,10 @@ function multiMap<T, O>(
       }
     };
 
-    let item: any = array[pendingIx];
+    const item: any = array[pendingIx];
 
     if (item && item.then) {
-      item.then((val: T) => {
+      return item.then((val: T) => {
         return handleRet(func.call(options.thisArg, val, pendingIx, context));
       }, fail);
     } else {
