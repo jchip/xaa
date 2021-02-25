@@ -2,7 +2,6 @@
 
 "use strict";
 
-
 const xaa = require("../../src/xaa");
 const { asyncVerify, expectError } = require("run-verify");
 
@@ -253,11 +252,37 @@ describe("xaa", function () {
       expect(output).to.deep.equal([1, 2, 5, 3]);
     });
 
+    it("should execute first level mapping promises with concurrency", async () => {
+      const output = [];
+
+      const promise = xaa.map(
+        [Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)],
+        async v => {
+          output.push(v);
+        },
+        { concurrency: 2 }
+      );
+      output.push(5);
+      await promise;
+      expect(output).to.deep.equal([5, 1, 2, 3]);
+    });
+
     it("should map async", async () => {
       const x = await xaa.map([1, 2, 3, 4, 5], async v => {
         await xaa.delay(Math.random() * 20 + 2);
         return v * 3;
       });
+      expect(x).to.deep.equal([3, 6, 9, 12, 15]);
+    });
+
+    it("should map promises async", async () => {
+      const x = await xaa.map(
+        [1, 2, 3, 4, 5].map(x => Promise.resolve(x)),
+        async v => {
+          await xaa.delay(Math.random() * 20 + 2);
+          return v * 3;
+        }
+      );
       expect(x).to.deep.equal([3, 6, 9, 12, 15]);
     });
 

@@ -387,16 +387,27 @@ function multiMap<T, O>(
       mapNext();
     };
 
-    try {
-      const res = func.call(options.thisArg, array[pendingIx], pendingIx, context);
+    const handleRet = res => {
       if (res && res.then) {
         res.then(save, fail);
         return mapNext();
       } else {
         return save(res);
       }
-    } catch (err) {
-      return fail(err);
+    };
+
+    let item: any = array[pendingIx];
+
+    if (item && item.then) {
+      item.then((val: T) => {
+        return handleRet(func.call(options.thisArg, val, pendingIx, context));
+      }, fail);
+    } else {
+      try {
+        return handleRet(func.call(options.thisArg, item as T, pendingIx, context));
+      } catch (err) {
+        return fail(err);
+      }
     }
   };
 
@@ -440,7 +451,11 @@ export async function map<T, O>(
 
     for (let i = 0; i < array.length; i++) {
       try {
-        awaited[i] = await func.call(options.thisArg, array[i], i, context);
+        let item: any = array[i];
+        if (item && item.then) {
+          item = await item;
+        }
+        awaited[i] = await func.call(options.thisArg, item as T, i, context);
       } catch (err) {
         context.failed = true;
         (err as MapError<O>).partial = awaited;
