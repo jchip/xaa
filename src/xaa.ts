@@ -336,7 +336,7 @@ function createMapContext<T>(array: readonly T[]): MapContext<T> {
  *
  * Use by xaa.map internally.
  *
- * @param array array to map
+ * @param array array to map, if any item is promise-like, it will be resolved first.
  * @param func mapper callback
  * @param options MapOptions
  * @returns promise with mapped result
@@ -426,9 +426,10 @@ function multiMap<T, O>(
 
 /**
  * async map array with concurrency
+ *
  * - intended to be similar to `bluebird.map`
  *
- * @param array - input array for map
+ * @param array array to map, if any item is promise-like, it will be resolved first.
  * @param func - callback to map values from the array
  * @param options - MapOptions
  * @returns promise with mapped result
