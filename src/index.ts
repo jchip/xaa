@@ -9,10 +9,21 @@ import assert from "assert";
 import { promisify } from "util";
 
 type Consumer<T> = (item: T, index?: number) => unknown;
-type Producer<T> = () => T | Promise<T>;
+type FuncProducer<T> = () => T | Promise<T>;
+type Producer<T> = Promise<T> | FuncProducer<T>;
 type Predicate<T> = (item: T, index?: number) => boolean | Promise<boolean>;
 
 const setTimeoutPromise = promisify(setTimeout);
+
+/**
+ * check if something is a promise
+ *
+ * @param p
+ * @returns true or false
+ */
+function isPromise<T>(p: any): p is Promise<T> {
+  return p && p.then && p.catch;
+}
 
 /**
  * Defer object for fulfilling a promise later in other events
@@ -31,6 +42,13 @@ export class Defer<T> {
       this.resolve = resolve;
       this.reject = reject;
     });
+    // Not declaring (err, result) explicitly for standard node.js callback.
+    // we can't be sure if user's API expects callback that
+    // should have a second arg for result.
+    this.done = (err: Error, ...args: any[]) => {
+      if (err) this.reject(err);
+      else this.resolve(args[0]);
+    };
   }
   /** The promise object for the defer */
   promise: Promise<T>;
@@ -45,13 +63,7 @@ export class Defer<T> {
    * @param args - result
    * @returns nothing
    */
-  done(err: Error, ...args: any[]) {
-    // Not declaring (err, result) explicitly for standard node.js callback.
-    // we can't be sure if user's API expects callback that
-    // should have a second arg for result.
-    if (err) this.reject(err);
-    else this.resolve(args[0]);
-  }
+  done: (err: Error, ...args: any[]) => void;
 }
 
 /**
@@ -87,13 +99,6 @@ export class TimeoutError extends Error {
   }
 }
 
-// It may be the case that Function cannot be assignable to T:
-// Implementation-wise, xaa.delay<() => string>(500, () => "foo") is unsound
-// since it returns Promise<string> at runtime, not Promise<() => string>.
-type ValueOrProducer<T> = T extends Function ? never : T | Promise<T> | Producer<T>;
-type ValueOrErrorHandler<T> = T extends Function
-  ? never
-  : T | Promise<T> | ((err?: Error) => T | Promise<T>);
 /**
  * delay some milliseconds and then return `valOrFunc`
  *
@@ -110,12 +115,12 @@ type ValueOrErrorHandler<T> = T extends Function
  * It can be an async function.
  * @returns `valOrFunc` or its returned value if it's a function.
  */
-export async function delay<T extends Function>(
+export async function delay(delayMs: number): Promise<void>;
+export async function delay<T = void>(delayMs: number, valOrFunc: T): Promise<T>;
+export async function delay<T = void>(
   delayMs: number,
-  valOrFunc?: Producer<T>
-): Promise<T>;
-export async function delay<T = void>(delayMs: number, valOrFunc: ValueOrProducer<T>): Promise<T>;
-export async function delay<T = void>(delayMs: number, valOrFunc?: ValueOrProducer<T>): Promise<T> {
+  valOrFunc?: () => T | Promise<T>
+): Promise<T> {
   await setTimeoutPromise(delayMs);
   return typeof valOrFunc === "function" ? /* lazily */ valOrFunc() : valOrFunc;
 }
@@ -312,7 +317,11 @@ export type MapContext<T> = {
  * @param context MapContext
  * @returns any or a promise
  */
-export type MapFunction<T, O> = (value: T, index: number, context: MapContext<T>) => O | Promise<O>;
+export type MapFunction<T, O> = (
+  value: Awaited<T>,
+  index: number,
+  context: MapContext<T>
+) => O | Promise<O>;
 
 /**
  * create map context
@@ -388,7 +397,7 @@ function multiMap<T, O>(
     };
 
     const handleRet = res => {
-      if (res && res.then) {
+      if (isPromise<O>(res)) {
         res.then(save, fail);
         return mapNext();
       } else {
@@ -398,8 +407,8 @@ function multiMap<T, O>(
 
     const item: any = array[pendingIx];
 
-    if (item && item.then) {
-      return item.then((val: T) => {
+    if (isPromise<T>(item)) {
+      return item.then(val => {
         return handleRet(func.call(options.thisArg, val, pendingIx, context));
       }, fail);
     } else {
@@ -436,7 +445,7 @@ function multiMap<T, O>(
  */
 export async function map<T, O>(
   array: readonly T[],
-  func: MapFunction<T, O>,
+  func?: MapFunction<T, O>,
   options: MapOptions = { concurrency: 1 }
 ): Promise<O[]> {
   assert(Array.isArray(array), `xaa.map expecting an array but got ${typeof array}`);
@@ -453,7 +462,7 @@ export async function map<T, O>(
     for (let i = 0; i < array.length; i++) {
       try {
         let item: any = array[i];
-        if (item && item.then) {
+        if (isPromise(item)) {
           item = await item;
         }
         awaited[i] = await func.call(options.thisArg, item as T, i, context);
@@ -514,23 +523,38 @@ export async function filter<T>(array: readonly T[], func: Predicate<T>) {
   return filtered;
 }
 
+type ValueOrErrorHandler<T> = T extends Function
+  ? never
+  : T | Promise<T> | ((err?: Error) => T | Promise<T>);
+
 /**
- * try to call and await a function and if it throws, then return `valOrFunc`.
+ * try to:
+ * - await a promise
+ * - call and await function that returns a promise
  *
- * - if `valOrFunc` is a function, then return `await valOrFunc(err)`
+ * If exception occur, then return `valOrFunc`
  *
- * @param func function to try
+ * - if `valOrFunc` is a function, then return `valOrFunc(err)`
+ *
+ * @param funcOrPromise function or promise to try
  * @param valOrFunc value, or callback to get value, to return if `func` throws
- * @returns awaited result, `valOrFunc`, or `await valOrFunc(err)`.
+ * @returns result, `valOrFunc`, or `valOrFunc(err)`.
  */
-export async function tryCatch<T, TAlt>(
-  func: Producer<T>,
-  valOrFunc?: ValueOrErrorHandler<TAlt>
-): Promise<T | TAlt> {
+export async function tryCatch<T>(
+  funcOrPromise: Producer<T>,
+  valOrFunc?: ValueOrErrorHandler<T>
+): Promise<T> {
   try {
-    return await func();
+    if (isPromise(funcOrPromise)) {
+      return await funcOrPromise;
+    }
+
+    return await funcOrPromise();
   } catch (err) {
-    return typeof valOrFunc === "function" ? valOrFunc(err) : valOrFunc;
+    if (typeof valOrFunc === "function") {
+      return valOrFunc(err);
+    }
+    return valOrFunc as any;
   }
 }
 

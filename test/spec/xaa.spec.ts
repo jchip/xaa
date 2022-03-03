@@ -1,9 +1,8 @@
 /* eslint-disable */
 
-"use strict";
-
-const xaa = require("../../src/xaa");
-const { asyncVerify, expectError } = require("run-verify");
+import * as xaa from "../../src";
+import { asyncVerify, expectError } from "run-verify";
+import { expect } from "chai";
 
 describe("xaa", function () {
   describe("delay", function () {
@@ -46,6 +45,12 @@ describe("xaa", function () {
           expect(r.message).equals("oops");
         }
       );
+    });
+
+    it("should allow done used without context", () => {
+      const defer = xaa.defer();
+      setTimeout(defer.done, 30);
+      return defer.promise;
     });
 
     it("should return defer object with done", () => {
@@ -157,7 +162,7 @@ describe("xaa", function () {
         () => {
           return xaa
             .timeout(50, "foo")
-            .run([() => Promise.resolve("blah"), Promise.resolve("hello"), "wow"]);
+            .run([() => Promise.resolve("blah"), Promise.resolve("hello"), "wow"] as any);
         },
         results => {
           expect(results).deep.equal(["blah", "hello", "wow"]);
@@ -174,7 +179,7 @@ describe("xaa", function () {
               () => xaa.delay(15, 2),
               "some value",
               Promise.resolve("more value")
-            ],
+            ] as any,
             50
           );
         },
@@ -193,7 +198,7 @@ describe("xaa", function () {
               () => xaa.delay(150, 2),
               "some value",
               Promise.resolve("more value")
-            ],
+            ] as any,
             50
           );
         }),
@@ -588,6 +593,11 @@ describe("xaa", function () {
         () => Promise.resolve("oops")
       );
       expect(x).to.equal("oops");
+    });
+
+    it("should handle a promise", async () => {
+      const x = await xaa.tryCatch(xaa.delay(50, "hello"));
+      expect(x).to.equal("hello");
     });
   });
 

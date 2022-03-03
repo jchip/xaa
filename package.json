@@ -5,10 +5,10 @@
   "main": "dist/xaa.js",
   "types": "dist/xaa.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "test": "xrun xarc/test-only",
     "coverage": "xrun xarc/test-cov",
-    "prepublishOnly": "xrun [[build, docs], xarc/check]",
+    "prepublishOnly": "xrun -s build xarc/check",
     "docs": "clap xarc/docs && touch docs/.nojekyll"
   },
   "homepage": "https://jchip.github.io/xaa/",
@@ -59,8 +59,7 @@
     "sinon-chai": "^3.5.0",
     "source-map-support": "^0.5.19",
     "ts-node": "^9.1.1",
-    "typedoc": "^0.20.13",
-    "typedoc-plugin-external-module-name": "^3.0.0",
+    "typedoc": "^0.22.12",
     "typescript": "^4.1.3"
   },
   "nyc": {
@@ -97,11 +96,6 @@
     "trailingComma": "none",
     "arrowParens": "avoid"
   },
-  "fyn": {
-    "devDependencies": {
-      "@xarc/module-dev": "../module-dev"
-    }
-  },
   "@xarc/module-dev": {
     "features": [
       "eslint",
@@ -120,7 +114,5 @@
     ],
     "recursive": true
   },
-  "dependencies": {
-    "tslib": "^2.1.0"
-  }
+  "dependencies": {}
 }
