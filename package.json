@@ -2,13 +2,13 @@
   "name": "xaa",
   "version": "1.7.1",
   "description": "async/await/Promise helpers - delay, defer, timeout, each, map, filter",
-  "main": "dist/xaa.js",
-  "types": "dist/xaa.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "test": "xrun xarc/test-only",
-    "coverage": "xrun xarc/test-cov",
-    "prepublishOnly": "xrun -s build xarc/check",
+    "test": "xrun -s build xarc/test-only",
+    "coverage": "xrun -s build xarc/test-cov",
+    "prepublishOnly": "xrun [[build, docs] xarc/check]",
     "docs": "clap xarc/docs && touch docs/.nojekyll"
   },
   "homepage": "https://jchip.github.io/xaa/",
