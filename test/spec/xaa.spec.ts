@@ -558,7 +558,13 @@ describe("xaa", function () {
 
   describe("tryCatch", function () {
     it("should return if there's no error", async () => {
-      const x = await xaa.tryCatch(() => Promise.resolve("hello"));
+      const x = await xaa.tryCatch(
+        () => {
+          return Promise.resolve("hello");
+        },
+        // test fallback being different type
+        [50, "hello"]
+      );
       expect(x).to.equal("hello");
       const x2 = await xaa.tryCatch(() => "hello");
       expect(x2).to.equal("hello");

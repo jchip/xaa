@@ -309,6 +309,11 @@ export type MapContext<T> = {
   assertNoFailure: () => void;
 };
 
+// Awaited only exist in typescript 4.5+
+type Awaited<T> = T extends PromiseLike<infer T2>
+  ? { 0: Awaited<T2>; 1: T2 }[T2 extends PromiseLike<any> ? 0 : 1]
+  : T;
+
 /**
  * callback function for xaa.map to map the value.
  *
@@ -540,10 +545,10 @@ type ValueOrErrorHandler<T> = T extends Function
  * @param valOrFunc value, or callback to get value, to return if `func` throws
  * @returns result, `valOrFunc`, or `valOrFunc(err)`.
  */
-export async function tryCatch<T>(
+export async function tryCatch<T, TAlt>(
   funcOrPromise: Producer<T>,
-  valOrFunc?: ValueOrErrorHandler<T>
-): Promise<T> {
+  valOrFunc?: ValueOrErrorHandler<TAlt>
+): Promise<T | TAlt> {
   try {
     if (isPromise(funcOrPromise)) {
       return await funcOrPromise;
@@ -551,10 +556,7 @@ export async function tryCatch<T>(
 
     return await funcOrPromise();
   } catch (err) {
-    if (typeof valOrFunc === "function") {
-      return valOrFunc(err);
-    }
-    return valOrFunc as any;
+    return typeof valOrFunc === "function" ? valOrFunc(err) : valOrFunc;
   }
 }
 
