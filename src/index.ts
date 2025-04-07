@@ -130,18 +130,36 @@ type Tasks<T extends readonly any[]> = {
   readonly [P in keyof T]: Task<T[P]>;
 };
 type Runnable<T> = T extends readonly any[] ? Tasks<T> : Task<T>;
+
+type TimeoutRunnerOptions = {
+  TimeoutError: typeof TimeoutError;
+  Promise: PromiseConstructor;
+};
+
 /**
  * TimeoutRunner for running tasks (promises) with a timeout
  *
  * Please use `xaa.timeout` or `xaa.runTimeout` APIs instead.
  */
 export class TimeoutRunner<T> {
-  constructor(maxMs: number, rejectMsg: string) {
+  /**
+   * constructor
+   * @param maxMs - number of milliseconds to allow tasks to run
+   * @param rejectMsg - message to reject with when timeout triggers
+   * @param options - TimeoutRunnerOptions
+   */
+  constructor(maxMs: number, rejectMsg: string, options: TimeoutRunnerOptions = {TimeoutError: TimeoutError, Promise: global.Promise}) {
     this.maxMs = maxMs;
     this.rejectMsg = rejectMsg;
-    this.defer = makeDefer();
-    this.timeout = setTimeout(() => this.defer.reject(new TimeoutError(rejectMsg)), maxMs);
+    this.defer = makeDefer(options.Promise);
+    this.ThePromise = options.Promise;
+    this.TimeoutError = options.TimeoutError;
+    this.timeout = setTimeout(() => this.defer.reject(new this.TimeoutError(rejectMsg)), maxMs);
   }
+
+  /**
+   * message to reject with when timeout triggers
+   */
   private defer: Defer<T>;
   /** setTimeout handle */
   private timeout: NodeJS.Timeout;
@@ -171,12 +189,15 @@ export class TimeoutRunner<T> {
    */
   async run<U extends Runnable<T>>(tasks: U): Promise<T | T[]> {
     const process = async (x: Task<T>) => (typeof x === "function" ? x() : x);
+
     // Cast below is due in part to https://github.com/microsoft/TypeScript/issues/17002
+    
     const arrTasks = !Array.isArray(tasks)
       ? process(tasks as Task<T>)
-      : Promise.all(tasks.map(process));
-    try {
-      const r = await Promise.race([arrTasks, this.defer.promise]);
+      : this.ThePromise.all(tasks.map(process));
+    
+      try {
+      const r = await this.ThePromise.race([arrTasks, this.defer.promise]);
       this.clear();
       this.result = r;
       return r;
@@ -194,7 +215,7 @@ export class TimeoutRunner<T> {
    */
   cancel(msg: string = "xaa TimeoutRunner operation cancelled"): void {
     this.clear();
-    this.defer.reject(new TimeoutError(msg));
+    this.defer.reject(new this.TimeoutError(msg));
   }
 
   /** Explicitly clear the setTimeout handle */
@@ -222,6 +243,11 @@ export class TimeoutRunner<T> {
   error?: Error;
   /** the result from running tasks */
   result?: T | T[];
+  
+  /** Promise constructor */  
+  ThePromise: PromiseConstructor;
+  /** TimeoutError constructor */
+  TimeoutError: typeof TimeoutError;  
 }
 
 /**
@@ -556,7 +582,7 @@ export async function tryCatch<T, TAlt>(
 
     return await funcOrPromise();
   } catch (err) {
-    return typeof valOrFunc === "function" ? valOrFunc(err) : valOrFunc;
+    return typeof valOrFunc === "function" ? valOrFunc(err) : valOrFunc as any;
   }
 }
 

@@ -49,7 +49,7 @@ describe("xaa", function () {
 
     it("should allow done used without context", () => {
       const defer = xaa.defer();
-      setTimeout(defer.done, 30);
+      setTimeout(defer.done as any, 30);
       return defer.promise;
     });
 
