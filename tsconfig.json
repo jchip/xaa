@@ -13,10 +13,7 @@
     "declaration": true,
     "types": [
       "node",
-      "mocha",
-      "chai",
-      "sinon",
-      "sinon-chai"
+      "jest"
     ],
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,

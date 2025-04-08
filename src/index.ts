@@ -6,14 +6,12 @@
 /* eslint-disable max-statements, @typescript-eslint/ban-types */
 
 import assert from "assert";
-import { promisify } from "util";
 
 type Consumer<T> = (item: T, index?: number) => unknown;
 type FuncProducer<T> = () => T | Promise<T>;
 type Producer<T> = Promise<T> | FuncProducer<T>;
 type Predicate<T> = (item: T, index?: number) => boolean | Promise<boolean>;
 
-const setTimeoutPromise = promisify(setTimeout);
 
 /**
  * check if something is a promise
@@ -121,7 +119,7 @@ export async function delay<T = void>(
   delayMs: number,
   valOrFunc?: () => T | Promise<T>
 ): Promise<T> {
-  await setTimeoutPromise(delayMs);
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
   return typeof valOrFunc === "function" ? /* lazily */ valOrFunc() : valOrFunc;
 }
 
@@ -148,7 +146,7 @@ export class TimeoutRunner<T> {
    * @param rejectMsg - message to reject with when timeout triggers
    * @param options - TimeoutRunnerOptions
    */
-  constructor(maxMs: number, rejectMsg: string, options: TimeoutRunnerOptions = {TimeoutError: TimeoutError, Promise: global.Promise}) {
+  constructor(maxMs: number, rejectMsg: string, options: TimeoutRunnerOptions) {
     this.maxMs = maxMs;
     this.rejectMsg = rejectMsg;
     this.defer = makeDefer(options.Promise);
@@ -271,9 +269,10 @@ export class TimeoutRunner<T> {
  */
 export function timeout<T>(
   maxMs: number,
-  rejectMsg: string = "xaa TimeoutRunner operation timed out"
+  rejectMsg: string = "xaa TimeoutRunner operation timed out", 
+  options: TimeoutRunnerOptions = {TimeoutError: TimeoutError, Promise: global.Promise}
 ): TimeoutRunner<T> {
-  return new TimeoutRunner(maxMs, rejectMsg);
+  return new TimeoutRunner(maxMs, rejectMsg, options);
 }
 
 /**
@@ -284,18 +283,20 @@ export function timeout<T>(
  * @param rejectMsg - message to reject with if operation timed out
  * @returns promise results from all tasks
  */
-export async function runTimeout<T>(tasks: Task<T>, maxMs: number, rejectMsg?: string): Promise<T>;
+export async function runTimeout<T>(tasks: Task<T>, maxMs: number, rejectMsg?: string, options?: TimeoutRunnerOptions): Promise<T>;
 export async function runTimeout<T extends readonly any[]>(
   tasks: Tasks<T>,
   maxMs: number,
-  rejectMsg?: string
+  rejectMsg?: string,
+  options?: TimeoutRunnerOptions
 ): Promise<T[]>;
 export async function runTimeout<T>(
   tasks: Runnable<T>,
   maxMs: number,
-  rejectMsg?: string
+  rejectMsg?: string,
+  options?: TimeoutRunnerOptions
 ): Promise<T | T[]> {
-  return await timeout<T>(maxMs, rejectMsg).run(tasks);
+  return await timeout<T>(maxMs, rejectMsg, options).run(tasks);
 }
 
 /**
@@ -392,6 +393,8 @@ function multiMap<T, O>(
   let completedCount = 0;
   let freeSlots = options.concurrency;
   let index = 0;
+  let iterator = Symbol.iterator in array && typeof array[Symbol.iterator] === 'function' ? array[Symbol.iterator]() : null;
+  let totalCount = iterator ? Infinity : array.length;
 
   const context = createMapContext(array);
 
@@ -409,11 +412,21 @@ function multiMap<T, O>(
   const mapNext = (): any => {
     // important to check this here, so an empty input array immediately
     // gets resolved with an empty result.
-    if (!error && completedCount === array.length) {
+    if (!error && (completedCount === totalCount)) {
       return defer.resolve(awaited);
     }
 
-    if (error || freeSlots <= 0 || index >= array.length) {
+    if (error || freeSlots <= 0 || index >= totalCount) {
+      return null;
+    }
+
+    const ir = iterator && iterator.next();
+    if (ir && ir.done) {
+      if (totalCount !== index) {
+        totalCount = index; 
+        return mapNext();
+      }
+      // istanbul ignore next
       return null;
     }
 
@@ -436,7 +449,7 @@ function multiMap<T, O>(
       }
     };
 
-    const item: any = array[pendingIx];
+    const item = ir ? ir.value : array[pendingIx];
 
     if (isPromise<T>(item)) {
       return item.then(val => {
@@ -464,6 +477,31 @@ function multiMap<T, O>(
   return defer.promise;
 }
 
+export async function mapSeries<T, O>(
+  array: readonly T[],
+  func?: MapFunction<T, O>,
+  options?: MapOptions 
+): Promise<O[]> {
+  const awaited = new Array<O>();
+  const context = createMapContext(array);
+
+  let i = 0;
+
+  try {
+    for (const element of array) {
+      const item = isPromise(element) ? await element : element;
+      awaited[i] = await func.call(options && options.thisArg, item as T, i, context);
+      i ++;
+    }
+  } catch (err) {
+    context.failed = true;
+    (err as MapError<O>).partial = awaited;
+    throw err;
+  }
+
+  return awaited;
+}
+
 /**
  * async map array with concurrency
  *
@@ -477,34 +515,13 @@ function multiMap<T, O>(
 export async function map<T, O>(
   array: readonly T[],
   func?: MapFunction<T, O>,
-  options: MapOptions = { concurrency: 1 }
+  options: MapOptions = { concurrency: 50 }
 ): Promise<O[]> {
   assert(Array.isArray(array), `xaa.map expecting an array but got ${typeof array}`);
-  if (array.length < 1) {
-    return [];
-  }
   if (options.concurrency > 1) {
     return multiMap(array, func, options);
   } else {
-    const awaited = new Array<O>(array.length);
-
-    const context = createMapContext(array);
-
-    for (let i = 0; i < array.length; i++) {
-      try {
-        let item: any = array[i];
-        if (isPromise(item)) {
-          item = await item;
-        }
-        awaited[i] = await func.call(options.thisArg, item as T, i, context);
-      } catch (err) {
-        context.failed = true;
-        (err as MapError<O>).partial = awaited;
-        throw err;
-      }
-    }
-
-    return awaited;
+    return mapSeries(array, func, options);
   }
 }
 
@@ -521,10 +538,18 @@ export async function map<T, O>(
  * @param array array to each
  * @param func callback for each
  */
-export async function each<T>(array: readonly T[], func: Consumer<T>) {
-  for (let i = 0; i < array.length; i++) {
-    await func(array[i], i);
+export async function each<T>(array: readonly T[], func: Consumer<T>): Promise<T[]> {
+  let i = 0;
+  const items = [];
+  
+  for (const element of array) {
+    const item = isPromise(element) ? await element : element;
+    items.push(item);
+    await func(item, i);
+    i ++;
   }
+
+  return items;
 }
 
 /**

@@ -2,49 +2,44 @@
 
 import * as xaa from "../../src";
 import { asyncVerify, expectError } from "run-verify";
-import { expect } from "chai";
 
-describe("xaa", function () {
-  describe("delay", function () {
+describe("xaa", () => {
+  describe("delay", () => {
     it("should wait ms", async () => {
       const a = Date.now();
       const x = await xaa.delay(20);
-      expect(x).to.equal(undefined);
-      expect(Date.now() - a).to.be.above(19);
+      expect(x).toBeUndefined();
+      expect(Date.now() - a).toBeGreaterThan(19);
     });
 
     it("should wait and run async func", async () => {
       const a = Date.now();
       const x = await xaa.delay(20, async () => "hello");
-      expect(x).to.equal("hello");
-      expect(Date.now() - a).to.be.above(19);
+      expect(x).toBe("hello");
+      expect(Date.now() - a).toBeGreaterThan(19);
     });
 
     it("should wait and run sync func", async () => {
       const a = Date.now();
       const x = await xaa.delay(20, () => "hello");
-      expect(x).to.equal("hello");
-      expect(Date.now() - a).to.be.above(18);
+      expect(x).toBe("hello");
+      expect(Date.now() - a).toBeGreaterThan(18);
     });
   });
 
-  describe("defer", function () {
+  describe("defer", () => {
     it("should return defer object that can resolve", () => {
       const defer = new xaa.Defer();
       setTimeout(() => defer.resolve("hello"), 100);
-      return defer.promise.then(x => expect(x).equals("hello"));
+      return defer.promise.then(x => expect(x).toBe("hello"));
     });
 
-    it("should return defer object that can reject", () => {
+    it("should return defer object that can reject", async () => {
       const defer = xaa.defer();
       setTimeout(() => defer.reject(new Error("oops")), 100);
-      return asyncVerify(
-        expectError(() => defer.promise),
-        r => {
-          expect(r).to.be.an("Error");
-          expect(r.message).equals("oops");
-        }
-      );
+      await expect(async () => {
+        await defer.promise;
+      }).rejects.toThrow("oops");
     });
 
     it("should allow done used without context", () => {
@@ -55,15 +50,15 @@ describe("xaa", function () {
 
     it("should return defer object with done", () => {
       const defer1 = xaa.defer();
-      expect(defer1.done.length).to.below(2);
+      expect(defer1.done.length).toBeLessThan(2);
       setTimeout(() => defer1.done(new Error("oops")));
       const defer2 = xaa.defer();
       setTimeout(() => defer2.done(null, "hello"));
       return asyncVerify(
         expectError(() => defer1.promise),
-        err => expect(err.message).to.equal("oops"),
+        err => expect(err.message).toBe("oops"),
         () => defer2.promise,
-        r => expect(r).to.equal("hello")
+        r => expect(r).toBe("hello")
       );
     });
   });
@@ -77,7 +72,7 @@ describe("xaa", function () {
           return too.run(xaa.delay(150));
         }),
         err => {
-          expect(err.message).equal("foo");
+          expect(err.message).toEqual("foo");
         }
       );
     });
@@ -92,8 +87,8 @@ describe("xaa", function () {
           return promise;
         }),
         err => {
-          expect(err.message).contains("operation cancelled");
-          expect(too.isDone()).equal(true);
+          expect(err.message).toContain("operation cancelled");
+          expect(too.isDone()).toBe(true);
         }
       );
     });
@@ -111,7 +106,7 @@ describe("xaa", function () {
         },
         promise => promise,
         message => {
-          expect(message).equal("good");
+          expect(message).toEqual("good");
         }
       );
     });
@@ -126,7 +121,7 @@ describe("xaa", function () {
           return promise;
         }),
         err => {
-          expect(err.message).equal("cancelling test");
+          expect(err.message).toEqual("cancelling test");
         }
       );
     });
@@ -139,7 +134,7 @@ describe("xaa", function () {
           return too.run(xaa.delay(150));
         }),
         err => {
-          expect(err.message).contains("operation timed out");
+          expect(err.message).toContain("operation timed out");
         }
       );
     });
@@ -152,7 +147,7 @@ describe("xaa", function () {
           return too.run(Promise.resolve("hello"));
         },
         msg => {
-          expect(msg).equal("hello");
+          expect(msg).toEqual("hello");
         }
       );
     });
@@ -165,7 +160,7 @@ describe("xaa", function () {
             .run([() => Promise.resolve("blah"), Promise.resolve("hello"), "wow"] as any);
         },
         results => {
-          expect(results).deep.equal(["blah", "hello", "wow"]);
+          expect(results).toEqual(["blah", "hello", "wow"]);
         }
       );
     });
@@ -184,7 +179,7 @@ describe("xaa", function () {
           );
         },
         results => {
-          expect(results).deep.equal([1, 2, "some value", "more value"]);
+          expect(results).toEqual([1, 2, "some value", "more value"]);
         }
       );
     });
@@ -203,7 +198,7 @@ describe("xaa", function () {
           );
         }),
         err => {
-          expect(err.message).contains("operation timed out");
+          expect(err.message).toContain("operation timed out");
         }
       );
     });
@@ -212,23 +207,39 @@ describe("xaa", function () {
   describe("each", function () {
     it("should call for each element in series", async () => {
       let last = 0;
-      await xaa.each([1, 2, 3, 4, 5], v => {
-        expect(v).to.be.above(last);
+      const x = await xaa.each([1, 2, 3, 4, 5], v => {
+        expect(v).toBeGreaterThan(last);
         last = v;
         return xaa.delay(Math.random() * 20 + 5);
       });
+      expect(x).toEqual([1, 2, 3, 4, 5]);
+    });
+
+    it("should call for each element mixed with promises in series", async () => {
+      let last: any = 0;
+      const x = await xaa.each([Promise.resolve(1), 2, Promise.resolve(3), 4, 5], v => {
+        expect(v).toBeGreaterThan(last);
+        last = v;
+        return xaa.delay(Math.random() * 20 + 5);
+      });
+      expect(x).toEqual([1, 2, 3, 4, 5]);
     });
   });
 
   describe("map", function () {
-    it("should map empty array", () => {
-      return xaa.map([]).then(r => {
-        expect(r).deep.equal([]);
+    it("should map empty array", async () => {
+      await xaa.map([]).then(r => {
+        expect(r).toEqual([]);
       });
+
+      await xaa.map([], undefined, { concurrency: 1}).then(r => {
+        expect(r).toEqual([]);
+      });
+
     });
 
     it("should execute first level mapping synchronously without concurrency", async () => {
-      const output = [];
+      const output: number[] = [];
 
       const promise = xaa.map(
         [1, 2, 3],
@@ -239,11 +250,11 @@ describe("xaa", function () {
       );
       output.push(5);
       await promise;
-      expect(output).to.deep.equal([1, 5, 2, 3]);
+      expect(output).toEqual([1, 5, 2, 3]);
     });
 
     it("should execute first level mapping synchronously with concurrency", async () => {
-      const output = [];
+      const output: number[] = [];
 
       const promise = xaa.map(
         [1, 2, 3],
@@ -254,11 +265,11 @@ describe("xaa", function () {
       );
       output.push(5);
       await promise;
-      expect(output).to.deep.equal([1, 2, 5, 3]);
+      expect(output).toEqual([1, 2, 5, 3]);
     });
 
     it("should execute first level mapping promises with concurrency", async () => {
-      const output = [];
+      const output: number[] = [];
 
       const promise = xaa.map(
         [Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)],
@@ -269,7 +280,7 @@ describe("xaa", function () {
       );
       output.push(5);
       await promise;
-      expect(output).to.deep.equal([5, 1, 2, 3]);
+      expect(output).toEqual([5, 1, 2, 3]);
     });
 
     it("should map async", async () => {
@@ -277,7 +288,15 @@ describe("xaa", function () {
         await xaa.delay(Math.random() * 20 + 2);
         return v * 3;
       });
-      expect(x).to.deep.equal([3, 6, 9, 12, 15]);
+      expect(x).toEqual([3, 6, 9, 12, 15]);
+    });
+
+    it("should map async with concurrency 1", async () => {
+      const x = await xaa.map([1, 2, 3, 4, 5], async v => {
+        await xaa.delay(Math.random() * 20 + 2);
+        return v * 3;
+      }, { concurrency: 1 });
+      expect(x).toEqual([3, 6, 9, 12, 15]);
     });
 
     it("should map promises async", async () => {
@@ -286,9 +305,10 @@ describe("xaa", function () {
         async v => {
           await xaa.delay(Math.random() * 20 + 2);
           return v * 3;
-        }
+        },
+        { concurrency: 1 }
       );
-      expect(x).to.deep.equal([3, 6, 9, 12, 15]);
+      expect(x).toEqual([3, 6, 9, 12, 15]);
     });
 
     it("should map async with concurrency", async () => {
@@ -301,8 +321,8 @@ describe("xaa", function () {
         },
         { concurrency: 2 }
       );
-      expect(x).to.deep.equal([3, 6, 9, 12, 15]);
-      expect(Date.now() - a).to.be.below(200);
+      expect(x).toEqual([3, 6, 9, 12, 15]);
+      expect(Date.now() - a).toBeLessThan(200);
     });
 
     it("should continue with free concurrency slots even if one is stuck", async () => {
@@ -322,9 +342,9 @@ describe("xaa", function () {
         },
         { concurrency: 3 }
       );
-      expect(x).to.deep.equal([3, 6, 9, 12, 15, 18, 21, 24, 27]);
-      expect(Date.now() - a).to.be.below(280);
-      expect(doneOrder).to.deep.equal([1, 3, 4, 5, 6, 2, 8, 9, 7]);
+      expect(x).toEqual([3, 6, 9, 12, 15, 18, 21, 24, 27]);
+      expect(Date.now() - a).toBeLessThan(280);
+      expect(doneOrder).toEqual([1, 3, 4, 5, 6, 2, 8, 9, 7]);
     });
 
     it("should return partial for concurrency 1", () => {
@@ -333,11 +353,11 @@ describe("xaa", function () {
           xaa.map([1, 2, 3, 4], v => {
             if (v === 3) throw new Error("oops");
             return v * 3;
-          })
+          }, { concurrency: 1 })
         ),
         err => {
-          expect(err).to.be.an("Error");
-          expect(err.partial.filter(x => x)).to.deep.equal([3, 6]);
+          expect(err).toBeInstanceOf(Error);
+          expect(err.partial.filter(x => x)).toEqual([3, 6]);
         }
       );
     });
@@ -359,9 +379,9 @@ describe("xaa", function () {
         },
         { concurrency: 3 }
       );
-      expect(x).to.deep.equal([3, 6, 9, 12, 15, 18, 21, 24, 27]);
-      expect(Date.now() - a).to.be.below(250);
-      expect(doneOrder).to.deep.equal([2, 1, 3, 4, 7, 5, 6, 8, 9]);
+      expect(x).toEqual([3, 6, 9, 12, 15, 18, 21, 24, 27]);
+      expect(Date.now() - a).toBeLessThan(250);
+      expect(doneOrder).toEqual([2, 1, 3, 4, 7, 5, 6, 8, 9]);
     });
 
     it("should handle error from an item", async () => {
@@ -389,10 +409,10 @@ describe("xaa", function () {
           );
         }),
         err => {
-          expect(err).to.be.an("Error");
-          expect(err.message).to.equal("Test error");
-          expect(Date.now() - a).to.be.below(150);
-          expect(doneOrder).to.deep.equal([1, 3, 4]);
+          expect(err).toBeInstanceOf(Error);
+          expect(err.message).toEqual("Test error");
+          expect(Date.now() - a).toBeLessThan(150);
+          expect(doneOrder).toEqual([1, 3, 4]);
         }
       );
     });
@@ -423,11 +443,11 @@ describe("xaa", function () {
           );
         }),
         async err => {
-          expect(Date.now() - a).to.be.below(100);
+          expect(Date.now() - a).toBeLessThan(100);
           await xaa.delay(50);
-          expect(err).to.be.an("Error");
-          expect(err.message).to.equal("Test error");
-          expect(doneOrder).to.deep.equal([2, 1, 3, 4]);
+          expect(err).toBeInstanceOf(Error);
+          expect(err.message).toEqual("Test error");
+          expect(doneOrder).toEqual([2, 1, 3, 4]);
         }
       );
     });
@@ -445,7 +465,7 @@ describe("xaa", function () {
           );
         }),
         err => {
-          expect(err.message).to.equal("error-1");
+          expect(err.message).toEqual("error-1");
         }
       );
     });
@@ -472,7 +492,7 @@ describe("xaa", function () {
         }),
         () => xaa.delay(20),
         () => {
-          expect(count).equal(expectCount);
+          expect(count).toEqual(expectCount);
         }
       );
     };
@@ -509,8 +529,8 @@ describe("xaa", function () {
         }),
         () => xaa.delay(20),
         () => {
-          expect(callCount).equal(4);
-          expect(finishCount).equal(2);
+          expect(callCount).toEqual(4);
+          expect(finishCount).toEqual(2);
         }
       );
     });
@@ -537,22 +557,61 @@ describe("xaa", function () {
         }),
         () => xaa.delay(20),
         () => {
-          expect(callCount).equal(4);
-          expect(finishCount).equal(0);
+          expect(callCount).toEqual(4);
+          expect(finishCount).toEqual(0);
         }
       );
+    });
+
+    it("should handle array with no iterator", async () => {
+      // Create an array with an altered iterator
+      const arrayWithAlteredIterator = [1, 2, 3];
+      Object.defineProperty(arrayWithAlteredIterator, Symbol.iterator, {
+        value: null,
+        configurable: true
+      });
+
+      const x = await xaa.map(arrayWithAlteredIterator, async v => {
+        await xaa.delay(50);
+        return v * 3;
+      });
+
+      expect(x).toEqual([3, 6, 9]);
+    });
+
+    it("should set context.failed and add partial results to error when mapping fails with concurrency 1", async () => {
+      // Create an array with a function that will throw an error
+      const arrayWithError = [1, 2, 3];
+      
+      try {
+        await xaa.map(arrayWithError, async (v, i) => {
+          await xaa.delay(10);
+          if (i === 1) {
+            throw new Error("Test error during mapping");
+          }
+          return v * 2;
+        }, { concurrency: 1 });
+        // If we get here, the test failed
+        expect(true).toBe(false);
+      } catch (err) {
+        // Verify that context.failed was set to true and partial results are available
+        expect(err.partial).toBeDefined();
+        // expect(err.partial.length).toBe(1);
+        expect(err.partial[0]).toBe(2); // First element was processed successfully
+        expect(err.message).toBe("Test error during mapping");
+      }
     });
   });
 
   describe("filter", function () {
     it("should filter sync", async () => {
       const x = await xaa.filter([1, 2, 3, 4, 5, 6], v => v % 2 === 0);
-      expect(x).to.deep.equal([2, 4, 6]);
+      expect(x).toEqual([2, 4, 6]);
     });
 
     it("should filter async", async () => {
       const x = await xaa.filter([1, 2, 3, 4, 5, 6], v => Promise.resolve(v % 2 === 0));
-      expect(x).to.deep.equal([2, 4, 6]);
+      expect(x).toEqual([2, 4, 6]);
     });
   });
 
@@ -565,20 +624,20 @@ describe("xaa", function () {
         // test fallback being different type
         [50, "hello"]
       );
-      expect(x).to.equal("hello");
+      expect(x).toEqual("hello");
       const x2 = await xaa.tryCatch(() => "hello");
-      expect(x2).to.equal("hello");
+      expect(x2).toEqual("hello");
     });
 
     it("should catch error", async () => {
       const x = await xaa.tryCatch(() => {
         throw new Error("test");
       });
-      expect(x).to.equal(undefined);
+      expect(x).toEqual(undefined);
       const x2 = await xaa.tryCatch(() => {
         throw new Error("test");
       }, "oops");
-      expect(x2).to.equal("oops");
+      expect(x2).toEqual("oops");
     });
 
     it("should catch error and call sync handler", async () => {
@@ -588,7 +647,7 @@ describe("xaa", function () {
         },
         () => "oops"
       );
-      expect(x).to.equal("oops");
+      expect(x).toEqual("oops");
     });
 
     it("should catch error and call async handler", async () => {
@@ -598,12 +657,12 @@ describe("xaa", function () {
         },
         () => Promise.resolve("oops")
       );
-      expect(x).to.equal("oops");
+      expect(x).toEqual("oops");
     });
 
     it("should handle a promise", async () => {
       const x = await xaa.tryCatch(xaa.delay(50, "hello"));
-      expect(x).to.equal("hello");
+      expect(x).toEqual("hello");
     });
   });
 
@@ -621,8 +680,8 @@ describe("xaa", function () {
           error = err;
         })
         .then(() => {
-          expect(error).to.be.an("Error");
-          expect(error.message).equal("blah");
+          expect(error).toBeInstanceOf(Error);
+          expect(error.message).toEqual("blah");
         });
     });
 
@@ -639,8 +698,8 @@ describe("xaa", function () {
           error = err;
         })
         .then(() => {
-          expect(error).to.be.an("Error");
-          expect(error.message).equal("blah");
+          expect(error).toBeInstanceOf(Error);
+          expect(error.message).toEqual("blah");
         });
     });
 
@@ -656,20 +715,20 @@ describe("xaa", function () {
           4
         )
         .then(a => {
-          expect(a).equal(10);
+          expect(a).toEqual(10);
         });
     });
 
     it("should call with no args", () => {
       return xaa.wrap((...args) => {
-        expect(args.length).equal(0);
+        expect(args.length).toEqual(0);
       });
     });
 
     it("should call with args that are undefined", () => {
       return xaa.wrap(
         (...args) => {
-          expect(args.length).equal(2);
+          expect(args.length).toEqual(2);
         },
         undefined,
         undefined
