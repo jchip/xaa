@@ -1,6 +1,6 @@
 {
   "name": "xaa",
-  "version": "1.7.3",
+  "version": "1.8.0",
   "description": "async/await/Promise helpers - delay, defer, timeout, each, map, filter",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -110,7 +110,10 @@
       "^.+\\.(ts|tsx)$": "ts-jest"
     },
     "testEnvironment": "node",
-    "testMatch": ["**/test/**/*.spec.ts", "**/test/**/*.spec.js"],
+    "testMatch": [
+      "**/test/**/*.spec.ts",
+      "**/test/**/*.spec.js"
+    ],
     "collectCoverageFrom": [
       "src/**/*.{ts,js}",
       "!**/node_modules/**"
