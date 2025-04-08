@@ -232,7 +232,7 @@ describe("xaa", () => {
         expect(r).toEqual([]);
       });
 
-      await xaa.map([], undefined, { concurrency: 1}).then(r => {
+      await xaa.map([], undefined, { concurrency: 1 }).then(r => {
         expect(r).toEqual([]);
       });
 
@@ -582,7 +582,7 @@ describe("xaa", () => {
     it("should set context.failed and add partial results to error when mapping fails with concurrency 1", async () => {
       // Create an array with a function that will throw an error
       const arrayWithError = [1, 2, 3];
-      
+
       try {
         await xaa.map(arrayWithError, async (v, i) => {
           await xaa.delay(10);

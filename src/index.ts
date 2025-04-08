@@ -3,7 +3,7 @@
  * @module index
  */
 
-/* eslint-disable max-statements, @typescript-eslint/ban-types */
+/* eslint-disable max-statements, @typescript-eslint/ban-types, max-params, complexity */
 
 import assert from "assert";
 
@@ -20,7 +20,7 @@ type Predicate<T> = (item: T, index?: number) => boolean | Promise<boolean>;
  * @returns true or false
  */
 export function isPromise<T>(p: any): p is Promise<T> {
-  return p && p.then && p.catch && typeof p.then === 'function' && typeof p.catch === 'function';
+  return p && p.then && p.catch && typeof p.then === "function" && typeof p.catch === "function";
 }
 
 /**
@@ -189,12 +189,12 @@ export class TimeoutRunner<T> {
     const process = async (x: Task<T>) => (typeof x === "function" ? x() : x);
 
     // Cast below is due in part to https://github.com/microsoft/TypeScript/issues/17002
-    
+
     const arrTasks = !Array.isArray(tasks)
       ? process(tasks as Task<T>)
       : this.ThePromise.all(tasks.map(process));
-    
-      try {
+
+    try {
       const r = await this.ThePromise.race([arrTasks, this.defer.promise]);
       this.clear();
       this.result = r;
@@ -241,11 +241,11 @@ export class TimeoutRunner<T> {
   error?: Error;
   /** the result from running tasks */
   result?: T | T[];
-  
-  /** Promise constructor */  
+
+  /** Promise constructor */
   ThePromise: PromiseConstructor;
   /** TimeoutError constructor */
-  TimeoutError: typeof TimeoutError;  
+  TimeoutError: typeof TimeoutError;
 }
 
 /**
@@ -269,8 +269,8 @@ export class TimeoutRunner<T> {
  */
 export function timeout<T>(
   maxMs: number,
-  rejectMsg: string = "xaa TimeoutRunner operation timed out", 
-  options: TimeoutRunnerOptions = {TimeoutError: TimeoutError, Promise: global.Promise}
+  rejectMsg: string = "xaa TimeoutRunner operation timed out",
+  options: TimeoutRunnerOptions = { TimeoutError: TimeoutError, Promise: global.Promise }
 ): TimeoutRunner<T> {
   return new TimeoutRunner(maxMs, rejectMsg, options);
 }
@@ -393,7 +393,7 @@ function multiMap<T, O>(
   let completedCount = 0;
   let freeSlots = options.concurrency;
   let index = 0;
-  let iterator = Symbol.iterator in array && typeof array[Symbol.iterator] === 'function' ? array[Symbol.iterator]() : null;
+  const iterator = Symbol.iterator in array && typeof array[Symbol.iterator] === "function" ? array[Symbol.iterator]() : null;
   let totalCount = iterator ? Infinity : array.length;
 
   const context = createMapContext(array);
@@ -423,7 +423,7 @@ function multiMap<T, O>(
     const ir = iterator && iterator.next();
     if (ir && ir.done) {
       if (totalCount !== index) {
-        totalCount = index; 
+        totalCount = index;
         return mapNext();
       }
       // istanbul ignore next
@@ -480,7 +480,7 @@ function multiMap<T, O>(
 export async function mapSeries<T, O>(
   array: readonly T[],
   func?: MapFunction<T, O>,
-  options?: MapOptions 
+  options?: MapOptions
 ): Promise<O[]> {
   const awaited = new Array<O>();
   const context = createMapContext(array);
@@ -491,7 +491,7 @@ export async function mapSeries<T, O>(
     for (const element of array) {
       const item = isPromise(element) ? await element : element;
       awaited[i] = await func.call(options && options.thisArg, item as T, i, context);
-      i ++;
+      i++;
     }
   } catch (err) {
     context.failed = true;
@@ -541,12 +541,12 @@ export async function map<T, O>(
 export async function each<T>(array: readonly T[], func: Consumer<T>): Promise<T[]> {
   let i = 0;
   const items = [];
-  
+
   for (const element of array) {
     const item = isPromise(element) ? await element : element;
     items.push(item);
     await func(item, i);
-    i ++;
+    i++;
   }
 
   return items;
