@@ -19,8 +19,8 @@ type Predicate<T> = (item: T, index?: number) => boolean | Promise<boolean>;
  * @param p
  * @returns true or false
  */
-function isPromise<T>(p: any): p is Promise<T> {
-  return p && p.then && p.catch;
+export function isPromise<T>(p: any): p is Promise<T> {
+  return p && p.then && p.catch && typeof p.then === 'function' && typeof p.catch === 'function';
 }
 
 /**
@@ -77,11 +77,11 @@ export class Defer<T> {
  * }
  * ```
  *
- * @param Promise - optional Promise constructor.
+ * @param ThePromise - optional Promise constructor.
  * @returns Defer instance
  */
-export function makeDefer<T>(Promise: PromiseConstructor = global.Promise): Defer<T> {
-  return new Defer(Promise);
+export function makeDefer<T>(ThePromise: PromiseConstructor = global.Promise): Defer<T> {
+  return new Defer(ThePromise);
 }
 
 export { makeDefer as defer };
