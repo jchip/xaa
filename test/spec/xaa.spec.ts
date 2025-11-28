@@ -1,7 +1,5 @@
-/* eslint-disable */
-
+import { describe, it, expect } from "vitest";
 import * as xaa from "../../src";
-import { asyncVerify, expectError } from "run-verify";
 
 describe("xaa", () => {
   describe("delay", () => {
@@ -48,159 +46,121 @@ describe("xaa", () => {
       return defer.promise;
     });
 
-    it("should return defer object with done", () => {
+    it("should return defer object with done", async () => {
       const defer1 = xaa.defer();
       expect(defer1.done.length).toBeLessThan(2);
       setTimeout(() => defer1.done(new Error("oops")));
       const defer2 = xaa.defer();
       setTimeout(() => defer2.done(null, "hello"));
-      return asyncVerify(
-        expectError(() => defer1.promise),
-        err => expect(err.message).toBe("oops"),
-        () => defer2.promise,
-        r => expect(r).toBe("hello")
-      );
+
+      try {
+        await defer1.promise;
+        throw new Error("should have thrown");
+      } catch (err: any) {
+        expect(err.message).toBe("oops");
+      }
+
+      const r = await defer2.promise;
+      expect(r).toBe("hello");
     });
   });
 
   describe("timeout", function () {
-    it("should timeout run", () => {
-      let too;
-      return asyncVerify(
-        expectError(() => {
-          too = xaa.timeout(50, "foo");
-          return too.run(xaa.delay(150));
-        }),
-        err => {
-          expect(err.message).toEqual("foo");
-        }
-      );
+    it("should timeout run", async () => {
+      const too = xaa.timeout(50, "foo");
+      try {
+        await too.run(xaa.delay(150));
+        throw new Error("should have thrown");
+      } catch (err: any) {
+        expect(err.message).toEqual("foo");
+      }
     });
 
-    it("should cancel run", () => {
-      let too;
-      return asyncVerify(
-        expectError(() => {
-          too = xaa.timeout(50, "foo");
-          const promise = too.run(xaa.delay(150));
-          too.cancel();
-          return promise;
-        }),
-        err => {
-          expect(err.message).toContain("operation cancelled");
-          expect(too.isDone()).toBe(true);
-        }
-      );
+    it("should cancel run", async () => {
+      const too = xaa.timeout(50, "foo");
+      try {
+        const promise = too.run(xaa.delay(150));
+        too.cancel();
+        await promise;
+        throw new Error("should have thrown");
+      } catch (err: any) {
+        expect(err.message).toContain("operation cancelled");
+        expect(too.isDone()).toBe(true);
+      }
     });
 
-    it("should ignore cancel if already resolved", () => {
-      let too;
-      return asyncVerify(
-        next => {
-          too = xaa.timeout(150, "foo");
-          const promise = too.run(Promise.resolve("good"));
-          setTimeout(() => {
-            too.cancel();
-            next(null, promise);
-          }, 1);
-        },
-        promise => promise,
-        message => {
-          expect(message).toEqual("good");
-        }
-      );
+    it("should ignore cancel if already resolved", async () => {
+      const too = xaa.timeout(150, "foo");
+      const promise = too.run(Promise.resolve("good"));
+      await xaa.delay(1);
+      too.cancel();
+      const message = await promise;
+      expect(message).toEqual("good");
     });
 
-    it("should cancel run with custom message", () => {
-      let too;
-      return asyncVerify(
-        expectError(() => {
-          too = xaa.timeout(50, "foo");
-          const promise = too.run(xaa.delay(150));
-          too.cancel("cancelling test");
-          return promise;
-        }),
-        err => {
-          expect(err.message).toEqual("cancelling test");
-        }
-      );
+    it("should cancel run with custom message", async () => {
+      const too = xaa.timeout(50, "foo");
+      try {
+        const promise = too.run(xaa.delay(150));
+        too.cancel("cancelling test");
+        await promise;
+        throw new Error("should have thrown");
+      } catch (err: any) {
+        expect(err.message).toEqual("cancelling test");
+      }
     });
 
-    it("should timeout run with default msg", () => {
-      let too;
-      return asyncVerify(
-        expectError(() => {
-          too = xaa.timeout(50);
-          return too.run(xaa.delay(150));
-        }),
-        err => {
-          expect(err.message).toContain("operation timed out");
-        }
-      );
+    it("should timeout run with default msg", async () => {
+      const too = xaa.timeout(50);
+      try {
+        await too.run(xaa.delay(150));
+        throw new Error("should have thrown");
+      } catch (err: any) {
+        expect(err.message).toContain("operation timed out");
+      }
     });
 
-    it("should resolve", () => {
-      let too;
-      return asyncVerify(
-        () => {
-          too = xaa.timeout(50, "foo");
-          return too.run(Promise.resolve("hello"));
-        },
-        msg => {
-          expect(msg).toEqual("hello");
-        }
-      );
+    it("should resolve", async () => {
+      const too = xaa.timeout(50, "foo");
+      const msg = await too.run(Promise.resolve("hello"));
+      expect(msg).toEqual("hello");
     });
 
-    it("should resolve functions", () => {
-      return asyncVerify(
-        () => {
-          return xaa
-            .timeout(50, "foo")
-            .run([() => Promise.resolve("blah"), Promise.resolve("hello"), "wow"] as any);
-        },
-        results => {
-          expect(results).toEqual(["blah", "hello", "wow"]);
-        }
-      );
+    it("should resolve functions", async () => {
+      const results = await xaa
+        .timeout(50, "foo")
+        .run([() => Promise.resolve("blah"), Promise.resolve("hello"), "wow"] as any);
+      expect(results).toEqual(["blah", "hello", "wow"]);
     });
 
-    it("should resolve bunch of values with runTimeout", () => {
-      return asyncVerify(
-        async () => {
-          return await xaa.runTimeout(
-            [
-              () => xaa.delay(10, 1),
-              () => xaa.delay(15, 2),
-              "some value",
-              Promise.resolve("more value")
-            ] as any,
-            50
-          );
-        },
-        results => {
-          expect(results).toEqual([1, 2, "some value", "more value"]);
-        }
+    it("should resolve bunch of values with runTimeout", async () => {
+      const results = await xaa.runTimeout(
+        [
+          () => xaa.delay(10, 1),
+          () => xaa.delay(15, 2),
+          "some value",
+          Promise.resolve("more value")
+        ] as any,
+        50
       );
+      expect(results).toEqual([1, 2, "some value", "more value"]);
     });
 
-    it("should fail with runTimeout", () => {
-      return asyncVerify(
-        expectError(async () => {
-          return await xaa.runTimeout(
-            [
-              () => xaa.delay(10, 1),
-              () => xaa.delay(150, 2),
-              "some value",
-              Promise.resolve("more value")
-            ] as any,
-            50
-          );
-        }),
-        err => {
-          expect(err.message).toContain("operation timed out");
-        }
-      );
+    it("should fail with runTimeout", async () => {
+      try {
+        await xaa.runTimeout(
+          [
+            () => xaa.delay(10, 1),
+            () => xaa.delay(150, 2),
+            "some value",
+            Promise.resolve("more value")
+          ] as any,
+          50
+        );
+        throw new Error("should have thrown");
+      } catch (err: any) {
+        expect(err.message).toContain("operation timed out");
+      }
     });
   });
 
@@ -235,7 +195,6 @@ describe("xaa", () => {
       await xaa.map([], undefined, { concurrency: 1 }).then(r => {
         expect(r).toEqual([]);
       });
-
     });
 
     it("should execute first level mapping synchronously without concurrency", async () => {
@@ -292,10 +251,14 @@ describe("xaa", () => {
     });
 
     it("should map async with concurrency 1", async () => {
-      const x = await xaa.map([1, 2, 3, 4, 5], async v => {
-        await xaa.delay(Math.random() * 20 + 2);
-        return v * 3;
-      }, { concurrency: 1 });
+      const x = await xaa.map(
+        [1, 2, 3, 4, 5],
+        async v => {
+          await xaa.delay(Math.random() * 20 + 2);
+          return v * 3;
+        },
+        { concurrency: 1 }
+      );
       expect(x).toEqual([3, 6, 9, 12, 15]);
     });
 
@@ -327,7 +290,7 @@ describe("xaa", () => {
 
     it("should continue with free concurrency slots even if one is stuck", async () => {
       const a = Date.now();
-      const doneOrder = [];
+      const doneOrder: number[] = [];
       const x = await xaa.map(
         [1, 2, 3, 4, 5, 6, 7, 8, 9],
         async v => {
@@ -347,24 +310,26 @@ describe("xaa", () => {
       expect(doneOrder).toEqual([1, 3, 4, 5, 6, 2, 8, 9, 7]);
     });
 
-    it("should return partial for concurrency 1", () => {
-      return asyncVerify(
-        expectError(() =>
-          xaa.map([1, 2, 3, 4], v => {
+    it("should return partial for concurrency 1", async () => {
+      try {
+        await xaa.map(
+          [1, 2, 3, 4],
+          v => {
             if (v === 3) throw new Error("oops");
             return v * 3;
-          }, { concurrency: 1 })
-        ),
-        err => {
-          expect(err).toBeInstanceOf(Error);
-          expect(err.partial.filter(x => x)).toEqual([3, 6]);
-        }
-      );
+          },
+          { concurrency: 1 }
+        );
+        throw new Error("should have thrown");
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(Error);
+        expect(err.partial.filter((x: any) => x)).toEqual([3, 6]);
+      }
     });
 
     it("should handle mix result for concurrency", async () => {
       const a = Date.now();
-      const doneOrder = [];
+      const doneOrder: number[] = [];
       const x = await xaa.map(
         [1, 2, 3, 4, 5, 6, 7, 8, 9],
         v => {
@@ -386,181 +351,169 @@ describe("xaa", () => {
 
     it("should handle error from an item", async () => {
       const a = Date.now();
-      const doneOrder = [];
+      const doneOrder: number[] = [];
 
-      return asyncVerify(
-        expectError(() => {
-          return xaa.map(
-            [1, 2, 3, 4, 5, 6, 7, 8, 9],
-            async v => {
-              if (v === 2) {
-                await xaa.delay(120);
-              } else if (v === 7) {
-                await xaa.delay(75);
-              }
-              await xaa.delay(50);
-              if (v === 5) {
-                throw new Error("Test error");
-              }
-              doneOrder.push(v);
-              return v * 3;
-            },
-            { concurrency: 3 }
-          );
-        }),
-        err => {
-          expect(err).toBeInstanceOf(Error);
-          expect(err.message).toEqual("Test error");
-          expect(Date.now() - a).toBeLessThan(150);
-          expect(doneOrder).toEqual([1, 3, 4]);
-        }
-      );
+      try {
+        await xaa.map(
+          [1, 2, 3, 4, 5, 6, 7, 8, 9],
+          async v => {
+            if (v === 2) {
+              await xaa.delay(120);
+            } else if (v === 7) {
+              await xaa.delay(75);
+            }
+            await xaa.delay(50);
+            if (v === 5) {
+              throw new Error("Test error");
+            }
+            doneOrder.push(v);
+            return v * 3;
+          },
+          { concurrency: 3 }
+        );
+        throw new Error("should have thrown");
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toEqual("Test error");
+        expect(Date.now() - a).toBeLessThan(150);
+        expect(doneOrder).toEqual([1, 3, 4]);
+      }
     });
 
     it("should handle immediate error from an item for concurrency", async () => {
       const a = Date.now();
-      const doneOrder = [];
+      const doneOrder: number[] = [];
 
-      return asyncVerify(
-        expectError(() => {
-          return xaa.map(
-            [1, 2, 3, 4, 5, 6, 7, 8, 9],
-            v => {
-              if (v === 2 || v === 7) {
-                doneOrder.push(v);
-                return v * 3;
-              }
-              if (v === 5) {
-                throw new Error("Test error");
-              }
+      try {
+        await xaa.map(
+          [1, 2, 3, 4, 5, 6, 7, 8, 9],
+          v => {
+            if (v === 2 || v === 7) {
+              doneOrder.push(v);
+              return v * 3;
+            }
+            if (v === 5) {
+              throw new Error("Test error");
+            }
 
-              return xaa.delay(50).then(() => {
-                doneOrder.push(v);
-                return v * 3;
-              });
-            },
-            { concurrency: 3 }
-          );
-        }),
-        async err => {
-          expect(Date.now() - a).toBeLessThan(100);
-          await xaa.delay(50);
-          expect(err).toBeInstanceOf(Error);
-          expect(err.message).toEqual("Test error");
-          expect(doneOrder).toEqual([2, 1, 3, 4]);
-        }
-      );
+            return xaa.delay(50).then(() => {
+              doneOrder.push(v);
+              return v * 3;
+            });
+          },
+          { concurrency: 3 }
+        );
+        throw new Error("should have thrown");
+      } catch (err: any) {
+        expect(Date.now() - a).toBeLessThan(100);
+        await xaa.delay(50);
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toEqual("Test error");
+        expect(doneOrder).toEqual([2, 1, 3, 4]);
+      }
     });
 
     it("should ignore multiple failures and use the first one", async () => {
-      return asyncVerify(
-        expectError(() => {
-          return xaa.map(
-            [1, 2, 3],
-            async v => {
-              await xaa.delay(v * 10);
-              throw new Error(`error-${v}`);
-            },
-            { concurrency: 3 }
-          );
-        }),
-        err => {
-          expect(err.message).toEqual("error-1");
-        }
-      );
+      try {
+        await xaa.map(
+          [1, 2, 3],
+          async v => {
+            await xaa.delay(v * 10);
+            throw new Error(`error-${v}`);
+          },
+          { concurrency: 3 }
+        );
+        throw new Error("should have thrown");
+      } catch (err: any) {
+        expect(err.message).toEqual("error-1");
+      }
     });
 
-    const testInflight = (observing, expectCount) => {
+    const testInflight = async (observing: boolean, expectCount: number) => {
       let count = 0;
-      return asyncVerify(
-        expectError(() => {
-          return xaa.map(
-            [1, 2, 3, 4, 5, 6],
-            async (v, ix, context) => {
-              if (v === 6) {
-                throw new Error("oops");
-              }
-              await xaa.delay(10);
-              if (observing && context.failed) {
-                return;
-              }
+      try {
+        await xaa.map(
+          [1, 2, 3, 4, 5, 6],
+          async (v, ix, context) => {
+            if (v === 6) {
+              throw new Error("oops");
+            }
+            await xaa.delay(10);
+            if (observing && context.failed) {
+              return;
+            }
 
-              count++;
-            },
-            { concurrency: 6 }
-          );
-        }),
-        () => xaa.delay(20),
-        () => {
-          expect(count).toEqual(expectCount);
-        }
-      );
+            count++;
+          },
+          { concurrency: 6 }
+        );
+        throw new Error("should have thrown");
+      } catch {
+        await xaa.delay(20);
+        expect(count).toEqual(expectCount);
+      }
     };
 
     it("should allow inflight map ops to finish even if error occurred", async () => {
-      return testInflight(false, 5);
+      await testInflight(false, 5);
     });
 
     it("should allow inflight map ops to observe that error occurred", async () => {
-      return testInflight(true, 0);
+      await testInflight(true, 0);
     });
 
     it("should allow map to use assertNoFailure to stop", async () => {
       let callCount = 0;
       let finishCount = 0;
-      return asyncVerify(
-        expectError(() => {
-          return xaa.map(
-            [1, 2, 3, 4, 5, 6],
-            async (v, ix, context) => {
-              callCount++;
-              if (v === 3) {
-                await xaa.delay(1);
-                throw new Error("oops");
-              }
-              await xaa.delay(10);
+      try {
+        await xaa.map(
+          [1, 2, 3, 4, 5, 6],
+          async (v, ix, context) => {
+            callCount++;
+            if (v === 3) {
+              await xaa.delay(1);
+              throw new Error("oops");
+            }
+            await xaa.delay(10);
 
-              context.assertNoFailure();
+            context.assertNoFailure();
 
-              finishCount++;
-            },
-            { concurrency: 2 }
-          );
-        }),
-        () => xaa.delay(20),
-        () => {
-          expect(callCount).toEqual(4);
-          expect(finishCount).toEqual(2);
-        }
-      );
+            finishCount++;
+          },
+          { concurrency: 2 }
+        );
+        throw new Error("should have thrown");
+      } catch {
+        await xaa.delay(20);
+        expect(callCount).toEqual(4);
+        expect(finishCount).toEqual(2);
+      }
     });
 
     it("should handle error thrown from non async function", async () => {
       let callCount = 0;
       let finishCount = 0;
-      return asyncVerify(
-        expectError(() => {
-          return xaa.map(
-            [1, 2, 3, 4, 5, 6],
-            (v, ix, context) => {
-              callCount++;
-              if (v === 4) {
-                throw new Error("oops");
-              }
-              return xaa.delay(10).then(() => {
-                context.assertNoFailure();
-                finishCount++;
-              });
-            },
-            { concurrency: 6 }
-          );
-        }),
-        () => xaa.delay(20),
-        () => {
-          expect(callCount).toEqual(4);
-          expect(finishCount).toEqual(0);
-        }
-      );
+      try {
+        await xaa.map(
+          [1, 2, 3, 4, 5, 6],
+          (v, ix, context) => {
+            callCount++;
+            if (v === 4) {
+              throw new Error("oops");
+            }
+            return xaa.delay(10).then(() => {
+              context.assertNoFailure();
+              finishCount++;
+            });
+          },
+          { concurrency: 6 }
+        );
+        throw new Error("should have thrown");
+      } catch {
+        await xaa.delay(20);
+        expect(callCount).toEqual(4);
+        expect(finishCount).toEqual(0);
+      }
     });
 
     it("should handle array with no iterator", async () => {
@@ -584,16 +537,20 @@ describe("xaa", () => {
       const arrayWithError = [1, 2, 3];
 
       try {
-        await xaa.map(arrayWithError, async (v, i) => {
-          await xaa.delay(10);
-          if (i === 1) {
-            throw new Error("Test error during mapping");
-          }
-          return v * 2;
-        }, { concurrency: 1 });
+        await xaa.map(
+          arrayWithError,
+          async (v, i) => {
+            await xaa.delay(10);
+            if (i === 1) {
+              throw new Error("Test error during mapping");
+            }
+            return v * 2;
+          },
+          { concurrency: 1 }
+        );
         // If we get here, the test failed
         expect(true).toBe(false);
-      } catch (err) {
+      } catch (err: any) {
         // Verify that context.failed was set to true and partial results are available
         expect(err.partial).toBeDefined();
         // expect(err.partial.length).toBe(1);
@@ -668,7 +625,7 @@ describe("xaa", () => {
 
   describe("wrap", function () {
     it("should wrap direct throws into async", () => {
-      let error;
+      let error: Error | undefined;
       return xaa
         .wrap(() => {
           throw new Error("blah");
@@ -681,12 +638,12 @@ describe("xaa", () => {
         })
         .then(() => {
           expect(error).toBeInstanceOf(Error);
-          expect(error.message).toEqual("blah");
+          expect(error!.message).toEqual("blah");
         });
     });
 
     it("should wrap async error", () => {
-      let error;
+      let error: Error | undefined;
       return xaa
         .wrap(() => {
           return Promise.reject(new Error("blah"));
@@ -699,14 +656,14 @@ describe("xaa", () => {
         })
         .then(() => {
           expect(error).toBeInstanceOf(Error);
-          expect(error.message).toEqual("blah");
+          expect(error!.message).toEqual("blah");
         });
     });
 
     it("should call with args", () => {
       return xaa
         .wrap(
-          (...numbers) => {
+          (...numbers: number[]) => {
             return numbers.reduce((s, x) => s + x, 0);
           },
           1,
@@ -720,14 +677,14 @@ describe("xaa", () => {
     });
 
     it("should call with no args", () => {
-      return xaa.wrap((...args) => {
+      return xaa.wrap((...args: any[]) => {
         expect(args.length).toEqual(0);
       });
     });
 
     it("should call with args that are undefined", () => {
       return xaa.wrap(
-        (...args) => {
+        (...args: any[]) => {
           expect(args.length).toEqual(2);
         },
         undefined,

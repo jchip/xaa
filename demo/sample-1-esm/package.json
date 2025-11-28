@@ -1,0 +1,18 @@
+{
+  "name": "sample-1-esm",
+  "version": "1.0.0",
+  "description": "xaa ESM demo",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "test": "node demo.js"
+  },
+  "fyn": {
+    "dependencies": {
+      "xaa": "../.."
+    }
+  },
+  "dependencies": {
+    "xaa": "^1.8.0"
+  }
+}

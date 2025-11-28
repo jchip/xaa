@@ -6,3 +6,5 @@ coverage
 *.log*
 *-lock.*
 dist
+dist-*
+demo/*/node_modules

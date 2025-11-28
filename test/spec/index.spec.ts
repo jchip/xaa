@@ -1,4 +1,5 @@
-import * as xaa from "../..";
+import { describe, it } from "vitest";
+import * as xaa from "../../src";
 
 describe("index", function () {
   it("should load", () => {

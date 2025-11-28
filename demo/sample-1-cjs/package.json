@@ -1,0 +1,17 @@
+{
+  "name": "sample-1-cjs",
+  "version": "1.0.0",
+  "description": "xaa CommonJS demo",
+  "license": "UNLICENSED",
+  "scripts": {
+    "test": "node demo.cjs"
+  },
+  "fyn": {
+    "dependencies": {
+      "xaa": "../.."
+    }
+  },
+  "dependencies": {
+    "xaa": "^1.8.0"
+  }
+}

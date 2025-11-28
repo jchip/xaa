@@ -12,7 +12,6 @@ type FuncProducer<T> = () => T | Promise<T>;
 type Producer<T> = Promise<T> | FuncProducer<T>;
 type Predicate<T> = (item: T, index?: number) => boolean | Promise<boolean>;
 
-
 /**
  * check if something is a promise
  *
@@ -119,7 +118,7 @@ export async function delay<T = void>(
   delayMs: number,
   valOrFunc?: () => T | Promise<T>
 ): Promise<T> {
-  await new Promise((resolve) => setTimeout(resolve, delayMs));
+  await new Promise(resolve => setTimeout(resolve, delayMs));
   return typeof valOrFunc === "function" ? /* lazily */ valOrFunc() : valOrFunc;
 }
 
@@ -283,7 +282,12 @@ export function timeout<T>(
  * @param rejectMsg - message to reject with if operation timed out
  * @returns promise results from all tasks
  */
-export async function runTimeout<T>(tasks: Task<T>, maxMs: number, rejectMsg?: string, options?: TimeoutRunnerOptions): Promise<T>;
+export async function runTimeout<T>(
+  tasks: Task<T>,
+  maxMs: number,
+  rejectMsg?: string,
+  options?: TimeoutRunnerOptions
+): Promise<T>;
 export async function runTimeout<T extends readonly any[]>(
   tasks: Tasks<T>,
   maxMs: number,
@@ -337,9 +341,10 @@ export type MapContext<T> = {
 };
 
 // Awaited only exist in typescript 4.5+
-type Awaited<T> = T extends PromiseLike<infer T2>
-  ? { 0: Awaited<T2>; 1: T2 }[T2 extends PromiseLike<any> ? 0 : 1]
-  : T;
+type Awaited<T> =
+  T extends PromiseLike<infer T2>
+    ? { 0: Awaited<T2>; 1: T2 }[T2 extends PromiseLike<any> ? 0 : 1]
+    : T;
 
 /**
  * callback function for xaa.map to map the value.
@@ -393,7 +398,10 @@ function multiMap<T, O>(
   let completedCount = 0;
   let freeSlots = options.concurrency;
   let index = 0;
-  const iterator = Symbol.iterator in array && typeof array[Symbol.iterator] === "function" ? array[Symbol.iterator]() : null;
+  const iterator =
+    Symbol.iterator in array && typeof array[Symbol.iterator] === "function"
+      ? array[Symbol.iterator]()
+      : null;
   let totalCount = iterator ? Infinity : array.length;
 
   const context = createMapContext(array);
@@ -412,7 +420,7 @@ function multiMap<T, O>(
   const mapNext = (): any => {
     // important to check this here, so an empty input array immediately
     // gets resolved with an empty result.
-    if (!error && (completedCount === totalCount)) {
+    if (!error && completedCount === totalCount) {
       return defer.resolve(awaited);
     }
 
@@ -421,12 +429,12 @@ function multiMap<T, O>(
     }
 
     const ir = iterator && iterator.next();
+    /* c8 ignore next 7 */
     if (ir && ir.done) {
       if (totalCount !== index) {
         totalCount = index;
         return mapNext();
       }
-      // istanbul ignore next
       return null;
     }
 
@@ -607,7 +615,7 @@ export async function tryCatch<T, TAlt>(
 
     return await funcOrPromise();
   } catch (err) {
-    return typeof valOrFunc === "function" ? valOrFunc(err) : valOrFunc as any;
+    return typeof valOrFunc === "function" ? valOrFunc(err) : (valOrFunc as any);
   }
 }
 
