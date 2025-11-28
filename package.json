@@ -1,6 +1,6 @@
 {
   "name": "xaa",
-  "version": "1.8.0",
+  "version": "2.0.0",
   "engines": {
     "node": ">=18"
   },
@@ -28,8 +28,8 @@
     "format": "prettier --write src test demo vitest.config.ts",
     "demo:cjs": "cd demo/sample-1-cjs && fyn install && node demo.cjs",
     "demo:esm": "cd demo/sample-1-esm && fyn install && node demo.js",
-    "prepublishOnly": "xrun -s [[build, docs], xarc/check]",
-    "docs": "xrun xarc/docs",
+    "prepublishOnly": "xrun -s '[coverage, [build, docs]]'",
+    "docs": "typedoc --gitRevision $(git rev-list -1 HEAD src) --out docs src",
     "prepack": "publish-util-prepack",
     "postpack": "publish-util-postpack"
   },
